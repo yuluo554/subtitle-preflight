@@ -1,0 +1,62 @@
+# ---- 构建产物 ----
+# dist/ 只保留唯一交付物（单文件 HTML），其余构建中间产物不入仓
+dist/*
+!dist/subtitle-preflight.html
+!dist/.gitkeep
+
+# ---- 依赖与工具链 ----
+node_modules/
+.pnpm-store/
+.yarn/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- 打包与压缩 ----
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# ---- 测试与覆盖率 ----
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+.pytest_cache/
+
+# ---- 本地运行产物 ----
+out/
+tmp/
+*.tmp
+*.bak
+*.orig
+
+# ---- 环境与密钥 ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 本地笔记与私有素材（版权红线：真实字幕永不入仓）----
+_private/
+notes.local.md
+
+# ---- 日志 ----
+*.log
+logs/
