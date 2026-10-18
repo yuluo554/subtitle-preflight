@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: "verify (${{ matrix.os }}, node ${{ matrix.node }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ["20", "24"]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Setup Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: "Sprint layout gate (methodology binding)"
+        run: node tools/check-sprint-layout.mjs
+
+      - name: "Ruleset gate (doc section 4 vs mirror)"
+        run: node tools/check-ruleset.mjs
+
+      - name: "Layout gate mutation selftest"
+        run: node tools/selftest-layout.mjs
+
+      - name: "Unit tests"
+        run: npm test
+
+      - name: "Build single-file artifact"
+        run: node tools/build.mjs
+
+      - name: "Artifact matches sources"
+        run: node tools/build.mjs --check
+
+      - name: "Browser e2e from artifact (headless)"
+        shell: bash
+        run: |
+          set +e
+          node tools/e2e-browser.mjs
+          code=$?
+          set -e
+          if [ "$code" = "3" ]; then
+            echo "::warning::浏览器 e2e 跳过：runner 上没有可用 Chrome/Edge（环境缺失，不是通过）"
+            exit 0
+          fi
+          exit "$code"

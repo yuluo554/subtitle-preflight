@@ -1,0 +1,22 @@
+{
+  "name": "subtitle-preflight",
+  "version": "0.1.0",
+  "private": true,
+  "description": "字幕投放前体检：单文件 HTML，浏览器内解析 SRT/VTT/ASS，按四类确定性规则体检并导出带行号定位的报告。",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "build:check": "node tools/build.mjs --check",
+    "gate:layout": "node tools/check-sprint-layout.mjs",
+    "gate:ruleset": "node tools/check-ruleset.mjs",
+    "gate:selftest": "node tools/selftest-layout.mjs",
+    "gate": "node tools/check-sprint-layout.mjs && node tools/check-ruleset.mjs && node tools/selftest-layout.mjs",
+    "e2e": "node tools/e2e-browser.mjs",
+    "test": "node --test tests/architecture.test.mjs tests/artifact_e2e.test.mjs tests/build.test.mjs tests/decode.test.mjs tests/gates.test.mjs tests/parse_srt.test.mjs tests/report_determinism.test.mjs tests/timing_rules.test.mjs",
+    "verify": "npm run gate && npm test && node tools/build.mjs --check"
+  }
+}

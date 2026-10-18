@@ -34,6 +34,7 @@ tmp/
 *.tmp
 *.bak
 *.orig
+out_dom.html
 
 # ---- 环境与密钥 ----
 .env

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>字幕投放前体检 · subtitle-preflight</title>
+<style>
+/*{{CSS}}*/
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>字幕投放前体检</h1>
+    <p class="lede">把 <code>.srt</code> / <code>.vtt</code> / <code>.ass</code> 拖进这个页面，在浏览器内解析并按「时序 / 阅读速度 / 行长 / 排版卫生」四类规则体检。文件不离开浏览器，断网可用。</p>
+    <p class="meta" id="status">初始化中…</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>1 · 输入</h2>
+    <div id="drop" class="drop">
+      <p class="drop-title">把字幕文件拖到这里</p>
+      <p class="drop-sub">支持多文件；也可点下面的按钮选择</p>
+      <label class="btn btn-primary">
+        选择文件
+        <input id="file-input" type="file" accept=".srt,.vtt,.ass,.ssa,text/plain" multiple hidden>
+      </label>
+    </div>
+
+    <details class="paste">
+      <summary>或粘贴字幕文本（file:// 下也可用）</summary>
+      <textarea id="paste-input" rows="6" placeholder="1&#10;00:00:01,000 --> 00:00:03,000&#10;示例台词"></textarea>
+      <button id="analyze-paste" class="btn">解析粘贴内容</button>
+    </details>
+
+    <div class="opts">
+      <label>媒体时长（秒，可选，用于越界判定）
+        <input id="media-duration" type="number" min="0" step="0.1" placeholder="例如 1440">
+      </label>
+      <button id="clear" class="btn btn-ghost">清空</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2 · 文件</h2>
+    <table class="grid">
+      <thead>
+        <tr><th>文件</th><th>标记</th><th>编码</th><th class="num">cue</th><th class="num">问题</th></tr>
+      </thead>
+      <tbody id="file-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>3 · 体检结果 <span class="count" id="finding-count"></span></h2>
+    <table class="grid">
+      <thead>
+        <tr><th>文件</th><th class="num">位置</th><th>规则</th><th>级别</th><th>期望</th><th>实测</th><th>说明</th></tr>
+      </thead>
+      <tbody id="finding-rows"></tbody>
+    </table>
+
+    <div id="skipped-block" class="skipped" hidden>
+      <h3>未执行的检查</h3>
+      <ul id="skipped-list"></ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4 · 导出</h2>
+    <div class="actions">
+      <button id="export-json" class="btn btn-primary">导出 JSON（逐文件）</button>
+      <button id="export-merged" class="btn">导出 JSON（合并）</button>
+      <button class="btn" disabled title="M5 实现">导出 Markdown（M5）</button>
+      <button class="btn" disabled title="M5 实现">导出 CSV（M5）</button>
+      <button class="btn" disabled title="M5 实现">导出修复后字幕（M5）</button>
+    </div>
+    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。</p>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>本地运行 · 零上传 · 零外链 · 断网可用。本工具是投放前的辅助检查，不构成对字幕质量或平台审核结果的保证。</p>
+</footer>
+
+<script>
+/*{{JS}}*/
+</script>
+</body>
+</html>

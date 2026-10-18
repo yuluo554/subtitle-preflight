@@ -153,6 +153,7 @@ data/truth/            与 samples 一一对应的真值 JSON
 | `drift.scaleStepCoarse` | 0.001 | 粗搜步长 |
 | `drift.scaleStepFine` | 0.00005 | 局部细化步长 |
 | `drift.residualMaxMs` | 40 ms | 残差中位数超过即报 `timing.fps-drift` |
+| `drift.minSamples` | 20 | 干净对少于此数则输出 `skipped`，不报漂移 |
 | `drift.tieBreak` | 先取 offset 更小，再取 scale 更小 | 并列最优的确定性取舍 |
 
 - 拟合模型：`expected ≈ offset + scale × actual`（或反向，方向在 `plan/03` 写死一处）。

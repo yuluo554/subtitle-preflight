@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>字幕投放前体检 · subtitle-preflight</title>
+<style>
+/* 界面样式：无外部字体、无远程样式导入、无 url()。 */
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --line: #262b36;
+  --text: #e6e9ef;
+  --muted: #98a1b3;
+  --accent: #5aa9ff;
+  --ok: #3ecf8e;
+  --warn: #f5a524;
+  --error: #f45b69;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.wrap {
+  width: min(1100px, 100% - 2rem);
+  margin: 0 auto;
+}
+
+.top {
+  border-bottom: 1px solid var(--line);
+  padding: 2.2rem 0 1.6rem;
+  background: linear-gradient(180deg, #141821 0%, var(--bg) 100%);
+}
+
+h1 { font-size: 1.7rem; margin: 0 0 .4rem; letter-spacing: .01em; }
+.lede { margin: 0 0 .8rem; color: var(--muted); max-width: 62ch; }
+.meta { margin: 0; font-size: .88rem; color: var(--muted); }
+
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.1rem 1.2rem;
+  margin: 1.2rem 0;
+}
+
+h2 { font-size: 1.05rem; margin: 0 0 .9rem; font-weight: 600; }
+h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
+
+.count { color: var(--muted); font-weight: 400; font-size: .88rem; margin-left: .4rem; }
+
+.drop {
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  transition: border-color .15s, background .15s;
+}
+
+.drop.over { border-color: var(--accent); background: #14202f; }
+.drop-title { margin: 0 0 .2rem; font-weight: 600; }
+.drop-sub { margin: 0 0 .9rem; color: var(--muted); font-size: .88rem; }
+
+.btn {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: #1e2330;
+  color: var(--text);
+  border-radius: 8px;
+  padding: .45rem .9rem;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.btn:hover:not(:disabled) { border-color: var(--accent); background: #202a3a; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { border-color: #2f6fb5; background: #17324f; }
+.btn-ghost { background: transparent; }
+
+.paste { margin-top: 1rem; }
+.paste summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+.paste textarea {
+  width: 100%;
+  margin: .6rem 0;
+  background: #10131a;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: .6rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .86rem;
+  resize: vertical;
+}
+
+.opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin-top: 1rem;
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+.opts input {
+  display: block;
+  margin-top: .3rem;
+  width: 10rem;
+  background: #10131a;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: .4rem .55rem;
+}
+
+.grid { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.grid th, .grid td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.grid th { color: var(--muted); font-weight: 500; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+.grid .num { text-align: right; white-space: nowrap; }
+.grid tbody tr:hover { background: #1b202a; }
+.grid a { color: var(--accent); text-decoration: none; }
+.grid a:hover { text-decoration: underline; }
+
+.badge {
+  display: inline-block;
+  font-size: .72rem;
+  padding: .05rem .4rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.badge-ok { color: var(--ok); border-color: #245c43; }
+.badge-warn { color: var(--warn); border-color: #6b4a12; }
+.badge-error { color: var(--error); border-color: #6d2a31; }
+.badge-muted { color: var(--muted); }
+
+.skipped { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+.skipped ul { margin: .2rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .86rem; }
+
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.note { color: var(--muted); font-size: .82rem; margin: .9rem 0 0; }
+
+.foot { padding: 1.5rem 0 3rem; color: var(--muted); font-size: .82rem; }
+
+.status-ok { color: var(--ok); }
+.status-warn { color: var(--warn); }
+.status-error { color: var(--error); }
+.status-idle { color: var(--muted); }
+
+@media (max-width: 720px) {
+  .grid { font-size: .82rem; }
+  .grid th:nth-child(5), .grid td:nth-child(5),
+  .grid th:nth-child(6), .grid td:nth-child(6) { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>字幕投放前体检</h1>
+    <p class="lede">把 <code>.srt</code> / <code>.vtt</code> / <code>.ass</code> 拖进这个页面，在浏览器内解析并按「时序 / 阅读速度 / 行长 / 排版卫生」四类规则体检。文件不离开浏览器，断网可用。</p>
+    <p class="meta" id="status">初始化中…</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2>1 · 输入</h2>
+    <div id="drop" class="drop">
+      <p class="drop-title">把字幕文件拖到这里</p>
+      <p class="drop-sub">支持多文件；也可点下面的按钮选择</p>
+      <label class="btn btn-primary">
+        选择文件
+        <input id="file-input" type="file" accept=".srt,.vtt,.ass,.ssa,text/plain" multiple hidden>
+      </label>
+    </div>
+
+    <details class="paste">
+      <summary>或粘贴字幕文本（file:// 下也可用）</summary>
+      <textarea id="paste-input" rows="6" placeholder="1&#10;00:00:01,000 --> 00:00:03,000&#10;示例台词"></textarea>
+      <button id="analyze-paste" class="btn">解析粘贴内容</button>
+    </details>
+
+    <div class="opts">
+      <label>媒体时长（秒，可选，用于越界判定）
+        <input id="media-duration" type="number" min="0" step="0.1" placeholder="例如 1440">
+      </label>
+      <button id="clear" class="btn btn-ghost">清空</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2 · 文件</h2>
+    <table class="grid">
+      <thead>
+        <tr><th>文件</th><th>标记</th><th>编码</th><th class="num">cue</th><th class="num">问题</th></tr>
+      </thead>
+      <tbody id="file-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>3 · 体检结果 <span class="count" id="finding-count"></span></h2>
+    <table class="grid">
+      <thead>
+        <tr><th>文件</th><th class="num">位置</th><th>规则</th><th>级别</th><th>期望</th><th>实测</th><th>说明</th></tr>
+      </thead>
+      <tbody id="finding-rows"></tbody>
+    </table>
+
+    <div id="skipped-block" class="skipped" hidden>
+      <h3>未执行的检查</h3>
+      <ul id="skipped-list"></ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4 · 导出</h2>
+    <div class="actions">
+      <button id="export-json" class="btn btn-primary">导出 JSON（逐文件）</button>
+      <button id="export-merged" class="btn">导出 JSON（合并）</button>
+      <button class="btn" disabled title="M5 实现">导出 Markdown（M5）</button>
+      <button class="btn" disabled title="M5 实现">导出 CSV（M5）</button>
+      <button class="btn" disabled title="M5 实现">导出修复后字幕（M5）</button>
+    </div>
+    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。</p>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>本地运行 · 零上传 · 零外链 · 断网可用。本工具是投放前的辅助检查，不构成对字幕质量或平台审核结果的保证。</p>
+</footer>
+
+<script>
+// ---- src/core/namespace.js ----
+/**
+ * 最小模块注册表。
+ * 浏览器与 Node 测试共用同一条执行路径：源码是经典脚本，不是 ESM。
+ * 依赖按需解析（懒加载），因此文件顺序只影响定义，不影响求值。
+ */
+(function (root) {
+  "use strict";
+
+  const registry = new Map();
+  const loading = new Set();
+
+  function define(name, deps, factory) {
+    if (registry.has(name)) throw new Error("重复定义模块: " + name);
+    if (!Array.isArray(deps)) throw new Error("模块依赖必须是数组: " + name);
+    registry.set(name, { deps: deps.slice(), factory, value: undefined, resolved: false });
+  }
+
+  function get(name) {
+    const mod = registry.get(name);
+    if (!mod) throw new Error("未知模块: " + name);
+    if (mod.resolved) return mod.value;
+    if (loading.has(name)) throw new Error("循环依赖: " + name);
+    loading.add(name);
+    try {
+      const args = mod.deps.map(get);
+      mod.value = mod.factory.apply(null, args);
+      mod.resolved = true;
+      return mod.value;
+    } finally {
+      loading.delete(name);
+    }
+  }
+
+  function has(name) {
+    return registry.has(name);
+  }
+
+  function names() {
+    return Array.from(registry.keys()).sort();
+  }
+
+  root.SP = { define, get, has, names };
+})(typeof globalThis !== "undefined" ? globalThis : this);
+
+SP.define("data/ruleset", [], function () {
+  "use strict";
+  return {
+    "$comment": "data/README.md §4 的机器可读镜像。唯一人类可读真相源是 §4；两者由 tools/check-ruleset.mjs 强制逐值一致。修改必须同提交。",
+    "cps.zh": 9,
+    "cps.en": 17,
+    "cps.ja": 9,
+    "cps.mixed": "dominant-script-per-cue",
+    "line.maxWidthFull": 16,
+    "line.maxWidthHalf": 42,
+    "line.maxLines": 2,
+    "line.minChars": 2,
+    "duration.min": 800,
+    "duration.max": 7000,
+    "timing.gapMin": 80,
+    "timing.overlapTolerance": 0,
+    "drift.offsetRange": [
+      -30000,
+      30000
+    ],
+    "drift.offsetStepCoarse": 100,
+    "drift.offsetStepFine": 5,
+    "drift.scaleRange": [
+      0.9,
+      1.1
+    ],
+    "drift.scaleStepCoarse": 0.001,
+    "drift.scaleStepFine": 0.00005,
+    "drift.residualMaxMs": 40,
+    "drift.minSamples": 20,
+    "drift.tieBreak": "offset-min-then-scale-min",
+    "hygiene.allCapsMinLength": 20,
+    "hygiene.repeatPunctMin": 3,
+    "hygiene.whitelist": [
+      "iPhone",
+      "iPad",
+      "macOS",
+      "iOS",
+      "e.g.",
+      "i.e.",
+      "etc.",
+      "♪"
+    ],
+    "report.schemaVersion": 1,
+    "report.rulesetVersion": 1,
+    "report.includeTimestamp": false,
+    "report.pathInOutput": false,
+    "report.sortKeys": [
+      "line",
+      "ruleId"
+    ],
+    "perf.targetInput": "10 MB / 5000 cue",
+    "perf.targetWallMs": 2000
+  };
+});
+
+// ---- src/core/ruleset.js ----
+/**
+ * 口径读取层：全部阈值来自 data/ruleset.v1.json（构建时注入为 data/ruleset 模块）。
+ * 源码里不得出现阈值字面量——由 tools/check-ruleset.mjs 的字面量扫描与
+ * tests/architecture.test.mjs 的架构扫描共同守门。
+ */
+SP.define("core/ruleset", ["data/ruleset"], function (raw) {
+  "use strict";
+
+  const RULESET = raw;
+
+  function get(key) {
+    if (!Object.prototype.hasOwnProperty.call(RULESET, key)) {
+      throw new Error("未知口径键: " + key);
+    }
+    return RULESET[key];
+  }
+
+  return {
+    get,
+    raw: RULESET,
+    version: RULESET["report.rulesetVersion"],
+    schemaVersion: RULESET["report.schemaVersion"],
+    sortKeys: RULESET["report.sortKeys"].slice(),
+  };
+});
+
+// ---- src/core/sha256.js ----
+/**
+ * SHA-256（同步、纯 JS、零依赖）。
+ * 用途：报告里的 inputSha256。浏览器没有同步的 SubtleCrypto，
+ * 而报告必须同步产出、且 Node 与浏览器结果一致。
+ */
+SP.define("core/sha256", [], function () {
+  "use strict";
+
+  const K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ]);
+
+  function rotr(x, n) {
+    return (x >>> n) | (x << (32 - n));
+  }
+
+  function sha256Hex(input) {
+    const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+    const H = new Uint32Array([
+      0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+      0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]);
+
+    const len = bytes.length;
+    const padded = new Uint8Array((((len + 9) + 63) >> 6) << 6);
+    padded.set(bytes);
+    padded[len] = 0x80;
+
+    const view = new DataView(padded.buffer);
+    const bitLen = len * 8;
+    view.setUint32(padded.length - 8, Math.floor(bitLen / 0x100000000));
+    view.setUint32(padded.length - 4, bitLen >>> 0);
+
+    const w = new Uint32Array(64);
+
+    for (let offset = 0; offset < padded.length; offset += 64) {
+      for (let t = 0; t < 16; t += 1) w[t] = view.getUint32(offset + t * 4);
+
+      for (let t = 16; t < 64; t += 1) {
+        const x = w[t - 15];
+        const y = w[t - 2];
+        const s0 = rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3);
+        const s1 = rotr(y, 17) ^ rotr(y, 19) ^ (y >>> 10);
+        w[t] = (w[t - 16] + s0 + w[t - 7] + s1) >>> 0;
+      }
+
+      let a = H[0], b = H[1], c = H[2], d = H[3];
+      let e = H[4], f = H[5], g = H[6], h = H[7];
+
+      for (let t = 0; t < 64; t += 1) {
+        const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        const ch = (e & f) ^ (~e & g);
+        const temp1 = (h + S1 + ch + K[t] + w[t]) >>> 0;
+        const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        const maj = (a & b) ^ (a & c) ^ (b & c);
+        const temp2 = (S0 + maj) >>> 0;
+
+        h = g; g = f; f = e;
+        e = (d + temp1) >>> 0;
+        d = c; c = b; b = a;
+        a = (temp1 + temp2) >>> 0;
+      }
+
+      H[0] = (H[0] + a) >>> 0;
+      H[1] = (H[1] + b) >>> 0;
+      H[2] = (H[2] + c) >>> 0;
+      H[3] = (H[3] + d) >>> 0;
+      H[4] = (H[4] + e) >>> 0;
+      H[5] = (H[5] + f) >>> 0;
+      H[6] = (H[6] + g) >>> 0;
+      H[7] = (H[7] + h) >>> 0;
+    }
+
+    let out = "";
+    for (let i = 0; i < 8; i += 1) out += H[i].toString(16).padStart(8, "0");
+    return out;
+  }
+
+  return { sha256Hex };
+});
+
+// ---- src/core/decode.js ----
+/**
+ * 编码嗅探与换行归一。
+ * 顺序：BOM → UTF-8 严格 → GBK → UTF-8 替换（lossy）。
+ * 回退必须显式上报（fallback / lossy），不得静默。
+ */
+SP.define("core/decode", [], function () {
+  "use strict";
+
+  function toBytes(input) {
+    if (input instanceof Uint8Array) return input;
+    if (input instanceof ArrayBuffer) return new Uint8Array(input);
+    if (ArrayBuffer.isView(input)) {
+      return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+    }
+    throw new TypeError("输入必须是 Uint8Array / ArrayBuffer / TypedArray");
+  }
+
+  function tryDecode(bytes, encoding, fatal) {
+    try {
+      const decoder = new TextDecoder(encoding, { fatal: Boolean(fatal) });
+      return { ok: true, text: decoder.decode(bytes) };
+    } catch (error) {
+      return { ok: false, error: String(error && error.message ? error.message : error) };
+    }
+  }
+
+  function detectEol(text) {
+    let crlf = 0;
+    let cr = 0;
+    let lf = 0;
+    for (let i = 0; i < text.length; i += 1) {
+      const ch = text.charCodeAt(i);
+      if (ch === 13) {
+        if (text.charCodeAt(i + 1) === 10) {
+          crlf += 1;
+          i += 1;
+        } else {
+          cr += 1;
+        }
+      } else if (ch === 10) {
+        lf += 1;
+      }
+    }
+    const kinds = [crlf > 0, cr > 0, lf > 0].filter(Boolean).length;
+    if (kinds === 0) return "lf";
+    if (kinds > 1) return "mixed";
+    if (crlf > 0) return "crlf";
+    if (cr > 0) return "cr";
+    return "lf";
+  }
+
+  function normalizeEol(text) {
+    return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  }
+
+  function stripBom(bytes) {
+    if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+      return { bom: "utf-8", bytes: bytes.subarray(3) };
+    }
+    if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+      return { bom: "utf-16le", bytes: bytes.subarray(2) };
+    }
+    if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+      return { bom: "utf-16be", bytes: bytes.subarray(2) };
+    }
+    return { bom: null, bytes };
+  }
+
+  /**
+   * @returns {{text:string, encoding:string, bom:string|null, fallback:boolean,
+   *            lossy:boolean, eol:string, diagnostics:Array}}
+   */
+  function decodeBytes(input) {
+    const bytes = toBytes(input);
+    const stripped = stripBom(bytes);
+    const diagnostics = [];
+    let encoding = "utf-8";
+    let fallback = false;
+    let lossy = false;
+    let decoded = null;
+
+    if (stripped.bom === "utf-8") {
+      const attempt = tryDecode(stripped.bytes, "utf-8", true);
+      if (attempt.ok) {
+        decoded = attempt.text;
+      } else {
+        lossy = true;
+        decoded = tryDecode(stripped.bytes, "utf-8", false).text;
+        diagnostics.push({
+          code: "decode.invalid-utf8",
+          detail: "UTF-8 BOM 与内容不符，已按替换字符解码",
+        });
+      }
+    } else if (stripped.bom === "utf-16le" || stripped.bom === "utf-16be") {
+      encoding = stripped.bom;
+      const attempt = tryDecode(stripped.bytes, encoding, true);
+      if (attempt.ok) {
+        decoded = attempt.text;
+      } else {
+        lossy = true;
+        decoded = tryDecode(stripped.bytes, encoding, false).text;
+        diagnostics.push({ code: "decode.invalid-utf16", detail: "UTF-16 内容解码失败，已降级" });
+      }
+    } else {
+      const utf8 = tryDecode(bytes, "utf-8", true);
+      if (utf8.ok) {
+        decoded = utf8.text;
+      } else {
+        const gbk = tryDecode(bytes, "gbk", true);
+        if (gbk.ok) {
+          encoding = "gbk";
+          fallback = true;
+          decoded = gbk.text;
+          diagnostics.push({
+            code: "decode.gbk-fallback",
+            detail: "非 UTF-8 字节，已回退 GBK 解码",
+          });
+        } else {
+          lossy = true;
+          decoded = tryDecode(bytes, "utf-8", false).text;
+          diagnostics.push({
+            code: "decode.lossy",
+            detail: "UTF-8 与 GBK 均严格解码失败，已按替换字符解码",
+          });
+        }
+      }
+    }
+
+    const eol = detectEol(decoded);
+    if (eol === "mixed") {
+      diagnostics.push({ code: "decode.mixed-eol", detail: "文件混用 CRLF/CR/LF，已统一为 LF" });
+    }
+
+    return {
+      text: normalizeEol(decoded),
+      encoding,
+      bom: stripped.bom,
+      fallback,
+      lossy,
+      eol,
+      diagnostics,
+    };
+  }
+
+  return { decodeBytes, detectEol, normalizeEol, stripBom };
+});
+
+// ---- src/core/parse/srt.js ----
+/**
+ * SRT 解析器（模块 ①）。
+ *
+ * 纪律：
+ *  - 行号一律 1-based，指向**归一化后的原文行**（换行归一不增删行）。
+ *  - 容忍：序号缺失 / 跳号 / 与块数不一致 / `,` 与 `.` 混用 / 行尾空白 / 空行噪声。
+ *  - 时间码无法解析时走回退路径并产出 `timing.unparsable-timecode`，不静默丢弃。
+ */
+SP.define("core/parse/srt", [], function () {
+  "use strict";
+
+  const TIMECODE = /^\s*(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})\s*-->\s*(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})(?:\s+.*)?\s*$/;
+  const INDEX_LINE = /^\s*\d+\s*$/;
+
+  function toMs(hour, minute, second, fraction) {
+    const digits = fraction.length;
+    let ms;
+    if (digits === 1) ms = Number(fraction) * 100;
+    else if (digits === 2) ms = Number(fraction) * 10;
+    else if (digits === 3) ms = Number(fraction);
+    else ms = Math.floor(Number(fraction) / 10); // 4 位及以上：截断到毫秒
+    return Number(hour) * 3600000 + Number(minute) * 60000 + Number(second) * 1000 + ms;
+  }
+
+  function precisionIssues(match, line) {
+    const issues = [];
+    const startHour = match[1];
+    const endHour = match[5];
+    const startFrac = match[4];
+    const endFrac = match[8];
+    if (startHour.length > 2) {
+      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "小时位超过 2 位" });
+    }
+    if (endHour.length > 2) {
+      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "小时位超过 2 位" });
+    }
+    if (startFrac.length > 3) {
+      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "亚毫秒精度被截断" });
+    }
+    if (endFrac.length > 3) {
+      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "亚毫秒精度被截断" });
+    }
+    if (startFrac.length !== 3) {
+      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "毫秒位不是 3 位" });
+    }
+    if (endFrac.length !== 3) {
+      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "毫秒位不是 3 位" });
+    }
+    return issues;
+  }
+
+  function isTimecode(line) {
+    return TIMECODE.test(line);
+  }
+
+  /**
+   * @param {string} text 已归一化换行（LF）的原文
+   * @returns {{cues:Array, findings:Array, diagnostics:Array}}
+   */
+  function parse(text) {
+    const lines = text.split("\n");
+    const cues = [];
+    const findings = [];
+    const diagnostics = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      if (lines[i].trim() === "") {
+        i += 1;
+        continue;
+      }
+
+      const blockStart = i;
+      let declaredIndex = null;
+      let timeLineIdx = i;
+
+      if (INDEX_LINE.test(lines[i]) && i + 1 < lines.length) {
+        // 序号行之后要么是可解析的时间行，要么是"意图是时间行但坏了"的行（含 -->）
+        if (isTimecode(lines[i + 1]) || lines[i + 1].includes("-->")) {
+          declaredIndex = Number(lines[i].trim());
+          timeLineIdx = i + 1;
+        }
+      }
+
+      const timeLine = lines[timeLineIdx];
+      const match = TIMECODE.exec(timeLine);
+      if (!match) {
+        findings.push({
+          ruleId: "timing.unparsable-timecode",
+          severity: "error",
+          line: timeLineIdx + 1,
+          field: "timecode",
+          expected: "HH:MM:SS,mmm --> HH:MM:SS,mmm",
+          actual: String(timeLine).slice(0, 120),
+          message: "时间码无法解析，该块已跳过",
+        });
+        diagnostics.push({ code: "parse.unparsable-timecode", line: timeLineIdx + 1 });
+        // 跳到下一个空行，避免把后续文本当独立块重复报错
+        i = timeLineIdx + 1;
+        while (i < lines.length && lines[i].trim() !== "") i += 1;
+        continue;
+      }
+
+      for (const issue of precisionIssues(match, timeLineIdx + 1)) {
+        diagnostics.push(issue);
+      }
+
+      const textStart = timeLineIdx + 1;
+      let j = textStart;
+      while (j < lines.length && lines[j].trim() !== "") j += 1;
+
+      const textLines = lines.slice(textStart, j);
+      const textLineNumbers = [];
+      for (let k = 0; k < textLines.length; k += 1) textLineNumbers.push(textStart + k + 1);
+
+      if (textLines.length === 0) {
+        findings.push({
+          ruleId: "parse.empty-cue",
+          severity: "warn",
+          line: timeLineIdx + 1,
+          field: "text",
+          expected: "至少 1 行文本",
+          actual: "0 行",
+          message: "时间码后没有文本行",
+        });
+        diagnostics.push({ code: "parse.empty-cue", line: timeLineIdx + 1 });
+      }
+
+      cues.push({
+        index: cues.length + 1,
+        declaredIndex,
+        startMs: toMs(match[1], match[2], match[3], match[4]),
+        endMs: toMs(match[5], match[6], match[7], match[8]),
+        textLines,
+        textLineNumbers,
+        format: "srt",
+        sourceLine: blockStart + 1,
+        endLine: j === textStart ? timeLineIdx + 1 : j,
+        timeLine: timeLineIdx + 1,
+      });
+
+      i = j;
+    }
+
+    return { cues, findings, diagnostics };
+  }
+
+  return { parse, toMs, TIMECODE };
+});
+
+// ---- src/core/parse/index.js ----
+/**
+ * 格式判别与解析分派。
+ *
+ * 纪律：**按文件内容形态判别，不按扩展名**（扩展名只作提示）。
+ * 已声明但未实现的解析器必须返回 `parser.not_implemented`，不得返回空成功——
+ * 否则"没做"会被读成"通过"。
+ */
+SP.define("core/parse/index", ["core/parse/srt"], function (srt) {
+  "use strict";
+
+  const FORMAT_LABEL = {
+    srt: "SubRip (.srt)",
+    vtt: "WebVTT (.vtt)",
+    ass: "Advanced SubStation Alpha (.ass/.ssa)",
+    unknown: "未知格式",
+  };
+
+  function detectFormat(text, fileName) {
+    const head = text.replace(/^\uFEFF/, "").slice(0, 4096);
+    if (/^\s*WEBVTT\b/.test(head)) return "vtt";
+    if (/^\s*\[Script Info\]/im.test(head) || /^\s*\[Events\]/im.test(head)) return "ass";
+    if (/-->/.test(head)) return "srt";
+    const ext = String(fileName || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+    if (ext) {
+      if (ext[1] === "srt") return "srt";
+      if (ext[1] === "vtt") return "vtt";
+      if (ext[1] === "ass" || ext[1] === "ssa") return "ass";
+    }
+    return "unknown";
+  }
+
+  function notImplemented(format) {
+    return {
+      cues: [],
+      findings: [],
+      diagnostics: [{ code: "parser.not_implemented", format, detail: FORMAT_LABEL[format] + " 解析器尚未实现" }],
+      skipped: [{ kind: "parser", format, reason: "not_implemented" }],
+    };
+  }
+
+  /**
+   * @param {string} text 已归一化换行的原文
+   * @param {string} fileName 仅用于扩展名提示
+   */
+  function parseText(text, fileName) {
+    const format = detectFormat(text, fileName);
+
+    if (format === "srt") {
+      const parsed = srt.parse(text);
+      return {
+        format,
+        cues: parsed.cues,
+        findings: parsed.findings,
+        diagnostics: parsed.diagnostics,
+        skipped: [],
+      };
+    }
+
+    if (format === "vtt" || format === "ass") {
+      const stub = notImplemented(format);
+      return {
+        format,
+        cues: stub.cues,
+        findings: stub.findings,
+        diagnostics: stub.diagnostics,
+        skipped: stub.skipped,
+      };
+    }
+
+    return {
+      format: "unknown",
+      cues: [],
+      findings: [],
+      diagnostics: [{ code: "parser.unsupported", detail: "无法判别格式（既非 SRT/VTT 也非 ASS）" }],
+      skipped: [{ kind: "parser", format: "unknown", reason: "unsupported" }],
+    };
+  }
+
+  return { parseText, detectFormat, FORMAT_LABEL };
+});
+
+// ---- src/core/rules/timing.js ----
+/**
+ * 时序规则（模块 ②）。本轮实现 T01–T10 与 T12；T11（fps 漂移）在 M3 补齐，
+ * 未实现时**必须**进入 `skipped[]`，不得静默返回空。
+ *
+ * 输出 finding 的 `line` 取时间码所在行（`timeLine`），便于回到原文定位。
+ */
+SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  const RULE_IDS = [
+    "timing.overlap",
+    "timing.zero-duration",
+    "timing.negative-duration",
+    "timing.gap-too-small",
+    "timing.non-monotonic",
+    "timing.duplicate-cue",
+    "timing.negative-start",
+    "timing.past-media-end",
+    "timing.file-order-mismatch",
+    "timing.timecode-precision",
+  ];
+
+  const IMPLEMENTED = new Set(RULE_IDS);
+
+  function finding(ruleId, cue, field, expected, actual, message, severity) {
+    return {
+      ruleId,
+      severity: severity || "error",
+      line: cue.timeLine,
+      field,
+      expected: String(expected),
+      actual: String(actual),
+      message,
+    };
+  }
+
+  function run(cues, options) {
+    const opts = options || {};
+    const findings = [];
+    const skipped = [];
+    const gapMin = ruleset.get("timing.gapMin");
+
+    for (let i = 0; i < cues.length; i += 1) {
+      const cue = cues[i];
+      const prev = i > 0 ? cues[i - 1] : null;
+
+      if (cue.startMs < 0) {
+        findings.push(finding("timing.negative-start", cue, "startMs", ">= 0", cue.startMs, "起点为负"));
+      }
+
+      if (cue.endMs < cue.startMs) {
+        findings.push(
+          finding("timing.negative-duration", cue, "endMs", ">= startMs", cue.endMs, "结束早于开始")
+        );
+      } else if (cue.endMs === cue.startMs) {
+        findings.push(
+          finding("timing.zero-duration", cue, "endMs", "> startMs", cue.endMs, "时长为 0")
+        );
+      }
+
+      if (prev) {
+        if (cue.startMs < prev.endMs) {
+          findings.push(
+            finding(
+              "timing.overlap",
+              cue,
+              "startMs",
+              ">= " + prev.endMs,
+              cue.startMs,
+              "本条起点早于上一条结束"
+            )
+          );
+        } else {
+          const gap = cue.startMs - prev.endMs;
+          if (gap < gapMin) {
+            findings.push(
+              finding(
+                "timing.gap-too-small",
+                cue,
+                "startMs",
+                ">= " + (prev.endMs + gapMin),
+                cue.startMs,
+                "与上一条的间隔小于口径下限"
+              )
+            );
+          }
+        }
+
+        if (cue.startMs < prev.startMs) {
+          findings.push(
+            finding(
+              "timing.non-monotonic",
+              cue,
+              "startMs",
+              ">= " + prev.startMs,
+              cue.startMs,
+              "起点相对上一条倒退"
+            )
+          );
+        }
+
+        if (
+          cue.startMs === prev.startMs &&
+          cue.endMs === prev.endMs &&
+          cue.textLines.join("\n") === prev.textLines.join("\n")
+        ) {
+          findings.push(
+            finding("timing.duplicate-cue", cue, "text", "唯一", "与上一条完全相同", "重复 cue", "warn")
+          );
+        }
+      }
+    }
+
+    // 文件顺序 ≠ 时间顺序：整段只报一条，指向首个倒退位置
+    const reversed = findFirstReversal(cues);
+    if (reversed) {
+      findings.push(
+        finding(
+          "timing.file-order-mismatch",
+          reversed,
+          "startMs",
+          "按时间升序排列",
+          reversed.startMs,
+          "文件顺序与时间顺序不一致",
+          "warn"
+        )
+      );
+    }
+
+    // 越界：仅在用户声明媒体时长时执行
+    const mediaDurationMs = opts.mediaDurationMs;
+    if (typeof mediaDurationMs === "number" && isFinite(mediaDurationMs) && mediaDurationMs > 0) {
+      let last = null;
+      for (const cue of cues) {
+        if (!last || cue.endMs > last.endMs) last = cue;
+      }
+      if (last && last.endMs > mediaDurationMs) {
+        findings.push(
+          finding(
+            "timing.past-media-end",
+            last,
+            "endMs",
+            "<= " + mediaDurationMs,
+            last.endMs,
+            "末条结束时间超过声明的媒体时长"
+          )
+        );
+      }
+    } else {
+      skipped.push({ kind: "rule", ruleId: "timing.past-media-end", reason: "media_duration_unknown" });
+    }
+
+    // T12 由解析层记录诊断，规则层转成 finding
+    for (const diagnostic of opts.diagnostics || []) {
+      if (diagnostic.code === "parse.timecode-precision") {
+        findings.push({
+          ruleId: "timing.timecode-precision",
+          severity: "warn",
+          line: diagnostic.line,
+          field: diagnostic.field || "timecode",
+          expected: "3 位毫秒 / 小时位 <= 2 位",
+          actual: diagnostic.detail || "非标准精度",
+          message: "时间码精度不符合口径",
+        });
+      }
+    }
+
+    // T11 未实现：显式声明，不返回空成功
+    skipped.push({ kind: "rule", ruleId: "timing.fps-drift", reason: "not_implemented" });
+
+    return { findings, skipped, implemented: Array.from(IMPLEMENTED).sort() };
+  }
+
+  function findFirstReversal(cues) {
+    for (let i = 1; i < cues.length; i += 1) {
+      if (cues[i].startMs < cues[i - 1].startMs) return cues[i];
+    }
+    return null;
+  }
+
+  return { run, RULE_IDS, findFirstReversal };
+});
+
+// ---- src/core/report.js ----
+/**
+ * 报告渲染（模块 ⑤ 的 JSON 部分）。
+ *
+ * 确定性：键序固定、findings 按 (line, ruleId) 排序、2 空格缩进、结尾换行。
+ * 不读时钟、不写绝对路径、不生成随机 ID。
+ */
+SP.define("core/report", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  function compareFindings(a, b) {
+    if (a.line !== b.line) return a.line - b.line;
+    if (a.ruleId !== b.ruleId) return a.ruleId < b.ruleId ? -1 : 1;
+    if (a.field !== b.field) return a.field < b.field ? -1 : 1;
+    return 0;
+  }
+
+  function summarize(findings) {
+    const byRule = {};
+    const bySeverity = { error: 0, warn: 0, info: 0 };
+    for (const f of findings) {
+      byRule[f.ruleId] = (byRule[f.ruleId] || 0) + 1;
+      if (Object.prototype.hasOwnProperty.call(bySeverity, f.severity)) {
+        bySeverity[f.severity] += 1;
+      } else {
+        bySeverity.info += 1;
+      }
+    }
+    const rules = {};
+    for (const key of Object.keys(byRule).sort()) rules[key] = byRule[key];
+    return { total: findings.length, bySeverity, byRule: rules };
+  }
+
+  /**
+   * @param {{inputSha256:string, findings:Array, fixes:Array, skipped:Array,
+   *          capabilities:Object, diagnostics:Array}} input
+   */
+  function build(input) {
+    const findings = (input.findings || []).slice().sort(compareFindings);
+    return {
+      schemaVersion: ruleset.schemaVersion,
+      rulesetVersion: ruleset.version,
+      inputSha256: input.inputSha256 || "",
+      summary: summarize(findings),
+      findings,
+      fixes: (input.fixes || []).slice(),
+      skipped: (input.skipped || []).slice(),
+      capabilities: input.capabilities || {},
+      diagnostics: (input.diagnostics || []).slice(),
+    };
+  }
+
+  function toJson(report) {
+    return JSON.stringify(report, null, 2) + "\n";
+  }
+
+  return { build, toJson, summarize, compareFindings };
+});
+
+// ---- src/core/pipeline.js ----
+/**
+ * 编排层（L2）：一次体检的唯一入口。
+ *
+ * 职责边界：
+ *  - 只串 L1，不做判定、不渲染。
+ *  - 未实现的规则/解析器必须以 `skipped[]` + `capabilities` 形式进入产物。
+ *  - 多文件按**文件名 Unicode 码点序**处理，保证确定性。
+ */
+SP.define(
+  "core/pipeline",
+  ["core/decode", "core/parse/index", "core/rules/timing", "core/report", "core/sha256", "core/ruleset"],
+  function (decode, parser, timing, report, sha256, ruleset) {
+    "use strict";
+
+    const CAPABILITIES = {
+      parsers: { srt: "implemented", vtt: "not_implemented", ass: "not_implemented" },
+      rules: {
+        timing: "partial",
+        readability: "not_implemented",
+        hygiene: "not_implemented",
+      },
+      exports: { json: "implemented", markdown: "not_implemented", csv: "not_implemented" },
+      fixes: "not_implemented",
+      driftFit: "not_implemented",
+    };
+
+    function compareName(a, b) {
+      const an = a.name;
+      const bn = b.name;
+      if (an === bn) return 0;
+      const ac = Array.from(an);
+      const bc = Array.from(bn);
+      const len = Math.min(ac.length, bc.length);
+      for (let i = 0; i < len; i += 1) {
+        const av = ac[i].codePointAt(0);
+        const bv = bc[i].codePointAt(0);
+        if (av !== bv) return av < bv ? -1 : 1;
+      }
+      return ac.length - bc.length;
+    }
+
+    function runOne(file, options) {
+      const decoded = decode.decodeBytes(file.bytes);
+      const parsed = parser.parseText(decoded.text, file.name);
+
+      const timingResult = timing.run(parsed.cues, {
+        mediaDurationMs: options.mediaDurationMs,
+        diagnostics: parsed.diagnostics,
+      });
+
+      const findings = parsed.findings.concat(timingResult.findings);
+      const skipped = parsed.skipped.concat(timingResult.skipped);
+
+      // 未实现的规则域：显式声明，不静默
+      skipped.push({ kind: "ruleDomain", domain: "readability", reason: "not_implemented" });
+      skipped.push({ kind: "ruleDomain", domain: "hygiene", reason: "not_implemented" });
+      skipped.push({ kind: "export", format: "markdown", reason: "not_implemented" });
+      skipped.push({ kind: "export", format: "csv", reason: "not_implemented" });
+      skipped.push({ kind: "fix", reason: "not_implemented" });
+
+      const built = report.build({
+        inputSha256: sha256.sha256Hex(file.bytes),
+        findings,
+        fixes: [],
+        skipped,
+        capabilities: CAPABILITIES,
+        diagnostics: decoded.diagnostics.concat(parsed.diagnostics),
+      });
+
+      return {
+        file: {
+          name: file.name,
+          size: file.bytes.length,
+          format: parsed.format,
+          encoding: decoded.encoding,
+          bom: decoded.bom,
+          fallback: decoded.fallback,
+          lossy: decoded.lossy,
+          eol: decoded.eol,
+          cueCount: parsed.cues.length,
+        },
+        cues: parsed.cues,
+        report: built,
+        json: report.toJson(built),
+      };
+    }
+
+    /**
+     * @param {Array<{name:string, bytes:Uint8Array}>} files
+     * @param {{mediaDurationMs?:number}} options
+     */
+    function run(files, options) {
+      const opts = options || {};
+      const ordered = files.slice().sort(compareName);
+      const results = ordered.map((file) => runOne(file, opts));
+      return {
+        results,
+        rulesetVersion: ruleset.version,
+        schemaVersion: ruleset.schemaVersion,
+      };
+    }
+
+    return { run, CAPABILITIES };
+  }
+);
+
+// ---- src/ui/app.js ----
+/**
+ * 界面层（L3）：只消费 core/pipeline 的返回，不实现判定、不写阈值。
+ */
+SP.define("ui/app", ["core/pipeline"], function (pipeline) {
+  "use strict";
+
+  const state = {
+    files: [],
+    results: [],
+    mediaDurationMs: null,
+  };
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function badge(text, tone) {
+    return '<span class="badge badge-' + tone + '">' + escapeHtml(text) + "</span>";
+  }
+
+  function readFiles(fileList) {
+    const list = Array.prototype.slice.call(fileList);
+    return Promise.all(
+      list.map(function (file) {
+        return new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload = function () {
+            resolve({ name: file.name, bytes: new Uint8Array(reader.result) });
+          };
+          reader.onerror = function () {
+            reject(new Error("读取失败: " + file.name));
+          };
+          reader.readAsArrayBuffer(file);
+        });
+      })
+    );
+  }
+
+  function setStatus(text, tone) {
+    const el = $("status");
+    el.textContent = text;
+    el.className = "status status-" + (tone || "idle");
+  }
+
+  function analyze(files) {
+    if (!files.length) return;
+    const merged = state.files.concat(files);
+    state.files = merged;
+    try {
+      const outcome = pipeline.run(merged, { mediaDurationMs: state.mediaDurationMs });
+      state.results = outcome.results;
+      render();
+      setStatus("已体检 " + outcome.results.length + " 个文件", "ok");
+    } catch (error) {
+      setStatus("体检失败：" + error.message, "error");
+    }
+  }
+
+  function render() {
+    renderFiles();
+    renderFindings();
+    renderSkipped();
+  }
+
+  function renderFiles() {
+    const body = $("file-rows");
+    body.innerHTML = "";
+    for (const result of state.results) {
+      const file = result.file;
+      const tr = document.createElement("tr");
+      const badges = [];
+      badges.push(badge(file.format.toUpperCase(), file.format === "unknown" ? "error" : "ok"));
+      if (file.fallback) badges.push(badge("GBK 回退", "warn"));
+      if (file.lossy) badges.push(badge("有损解码", "error"));
+      if (file.bom) badges.push(badge("BOM " + file.bom, "muted"));
+      if (file.eol === "mixed") badges.push(badge("混合换行", "warn"));
+      tr.innerHTML =
+        "<td>" + escapeHtml(file.name) + "</td>" +
+        "<td>" + badges.join(" ") + "</td>" +
+        "<td>" + escapeHtml(file.encoding) + "</td>" +
+        "<td class=\"num\">" + file.cueCount + "</td>" +
+        "<td class=\"num\">" + result.report.summary.total + "</td>";
+      body.appendChild(tr);
+    }
+  }
+
+  function renderFindings() {
+    const body = $("finding-rows");
+    body.innerHTML = "";
+    const rows = [];
+    state.results.forEach(function (result, fileIndex) {
+      for (const finding of result.report.findings) {
+        rows.push({ fileIndex: fileIndex, name: result.file.name, finding: finding });
+      }
+    });
+    rows.sort(function (a, b) {
+      if (a.fileIndex !== b.fileIndex) return a.fileIndex - b.fileIndex;
+      if (a.finding.line !== b.finding.line) return a.finding.line - b.finding.line;
+      return a.finding.ruleId < b.finding.ruleId ? -1 : 1;
+    });
+
+    $("finding-count").textContent = rows.length ? "共 " + rows.length + " 条" : "无违规";
+
+    for (const row of rows) {
+      const f = row.finding;
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + escapeHtml(row.name) + "</td>" +
+        "<td class=\"num\"><a href=\"#\" data-line=\"" + f.line + "\">第 " + f.line + " 行</a></td>" +
+        "<td><code>" + escapeHtml(f.ruleId) + "</code></td>" +
+        "<td>" + badge(f.severity, f.severity === "error" ? "error" : "warn") + "</td>" +
+        "<td>" + escapeHtml(f.expected) + "</td>" +
+        "<td>" + escapeHtml(f.actual) + "</td>" +
+        "<td>" + escapeHtml(f.message) + "</td>";
+      body.appendChild(tr);
+    }
+  }
+
+  function renderSkipped() {
+    const list = $("skipped-list");
+    list.innerHTML = "";
+    const seen = new Set();
+    for (const result of state.results) {
+      for (const item of result.report.skipped) {
+        const key = JSON.stringify(item);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const li = document.createElement("li");
+        li.textContent = item.ruleId || item.domain || item.format || item.kind;
+        li.textContent += " — " + (item.reason || "unknown");
+        list.appendChild(li);
+      }
+    }
+    $("skipped-block").hidden = seen.size === 0;
+  }
+
+  function download(name, text, mime) {
+    const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = name;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportJson() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const base = result.file.name.replace(/\.[^.]+$/, "");
+      download(base + ".report.json", result.json, "application/json;charset=utf-8");
+    }
+  }
+
+  function exportMergedJson() {
+    if (!state.results.length) return;
+    const merged = {
+      reports: state.results.map(function (result) {
+        return result.report;
+      }),
+    };
+    download("subtitle-preflight.report.json", JSON.stringify(merged, null, 2) + "\n", "application/json;charset=utf-8");
+  }
+
+  function bind() {
+    const drop = $("drop");
+    const input = $("file-input");
+
+    ["dragenter", "dragover"].forEach(function (eventName) {
+      drop.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        drop.classList.add("over");
+      });
+    });
+    ["dragleave", "drop"].forEach(function (eventName) {
+      drop.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        drop.classList.remove("over");
+      });
+    });
+    drop.addEventListener("drop", function (event) {
+      const files = event.dataTransfer && event.dataTransfer.files;
+      if (!files || !files.length) return;
+      readFiles(files).then(analyze).catch(function (error) {
+        setStatus(error.message, "error");
+      });
+    });
+
+    input.addEventListener("change", function () {
+      if (!input.files || !input.files.length) return;
+      readFiles(input.files).then(analyze).catch(function (error) {
+        setStatus(error.message, "error");
+      });
+      input.value = "";
+    });
+
+    $("analyze-paste").addEventListener("click", function () {
+      const text = $("paste-input").value;
+      if (!text.trim()) {
+        setStatus("粘贴框是空的", "warn");
+        return;
+      }
+      const bytes = new TextEncoder().encode(text);
+      analyze([{ name: "pasted.srt", bytes: bytes }]);
+    });
+
+    $("media-duration").addEventListener("change", function (event) {
+      const raw = event.target.value.trim();
+      if (!raw) {
+        state.mediaDurationMs = null;
+        return;
+      }
+      const seconds = Number(raw);
+      state.mediaDurationMs = isFinite(seconds) && seconds > 0 ? Math.round(seconds * 1000) : null;
+      if (state.files.length) analyze([]);
+    });
+
+    $("export-json").addEventListener("click", exportJson);
+    $("export-merged").addEventListener("click", exportMergedJson);
+
+    $("clear").addEventListener("click", function () {
+      state.files = [];
+      state.results = [];
+      render();
+      setStatus("已清空", "idle");
+    });
+  }
+
+  function boot() {
+    bind();
+    setStatus("等待输入：拖入 .srt/.vtt/.ass，或粘贴文本", "idle");
+  }
+
+  return { boot, analyze, exportJson, exportMergedJson, state };
+});
+
+// ---- boot ----
+if (typeof document !== "undefined") {
+  SP.get("ui/app").boot();
+}
+</script>
+</body>
+</html>
