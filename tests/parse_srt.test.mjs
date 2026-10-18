@@ -142,6 +142,53 @@ test("SRT：小时位与毫秒位精度问题记入 diagnostics（T12 输入）"
   assert.ok(details.some((d) => d.includes("毫秒位")));
 });
 
+test("SRT：起点前导负号 → 负毫秒（G11），交给规则层报 timing.negative-start", () => {
+  const text = ["1", "-00:00:00,500 --> 00:00:00,800", "起点为负", ""].join("\n");
+  const { cues, diagnostics } = srt.parse(text);
+  assert.equal(cues.length, 1);
+  assert.equal(cues[0].startMs, -500);
+  assert.equal(cues[0].endMs, 800);
+  // 负号不得被误判成"小时位超过 2 位"的精度问题
+  assert.deepEqual(diagnostics, []);
+
+  const timing = SP.get("core/rules/timing");
+  const { findings } = timing.run(cues, {});
+  const hits = findings.filter((f) => f.ruleId === "timing.negative-start");
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].line, 2);
+});
+
+test("SRT：结束时间也可带前导负号", () => {
+  const { cues } = srt.parse(["1", "00:00:00,500 --> -00:00:00,100", "反向", ""].join("\n"));
+  assert.equal(cues[0].startMs, 500);
+  assert.equal(cues[0].endMs, -100);
+});
+
+test("SRT：块内空行 = 块终止符（G13 口径），孤儿内容显式报错不静默", () => {
+  const text = [
+    "1", // 1
+    "00:00:01,000 --> 00:00:02,000", // 2
+    "上半句", // 3
+    "", // 4 ← 块内空行：块在此结束
+    "下半句", // 5 ← 孤儿内容
+    "", // 6
+    "2", // 7
+    "00:00:03,000 --> 00:00:04,000", // 8
+    "正常", // 9
+    "",
+  ].join("\n");
+  const { cues, findings } = srt.parse(text);
+  assert.equal(cues.length, 2);
+  // 块内空行后的内容不再属于第 1 块
+  assert.deepEqual(cues[0].textLines, ["上半句"]);
+  assert.equal(cues[0].endLine, 3);
+  // 但也不许静默丢弃：孤儿行必须被点名
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].ruleId, "timing.unparsable-timecode");
+  assert.equal(findings[0].line, 5);
+  assert.equal(cues[1].startMs, 3000);
+});
+
 test("SRT：无法解析的时间码走回退路径并产出 finding", () => {
   const text = ["1", "00:00:01 --> 00:00:02", "坏时间码", "", "2", "00:00:03,000 --> 00:00:04,000", "好的", ""].join("\n");
   const { cues, findings } = srt.parse(text);
@@ -183,14 +230,20 @@ test("解析分派：按内容判别格式，不只看扩展名", () => {
   assert.equal(parse.detectFormat("随便一段文字", "a.txt"), "unknown");
 });
 
-test("解析分派：未实现解析器返回 not_implemented，不返回空成功", () => {
+test("解析分派：三种格式都分派到已实现解析器（不再返回 not_implemented）", () => {
   const parse = SP.get("core/parse/index");
-  const result = parse.parseText("WEBVTT\n\n00:00.000 --> 00:01.000\nhello\n", "a.vtt");
-  assert.equal(result.format, "vtt");
-  assert.equal(result.cues.length, 0);
-  assert.equal(result.skipped.length, 1);
-  assert.equal(result.skipped[0].reason, "not_implemented");
-  assert.equal(result.diagnostics[0].code, "parser.not_implemented");
+  const cases = [
+    ["WEBVTT\n\n00:00.000 --> 00:01.000\nhello\n", "a.vtt", "vtt"],
+    ["[Script Info]\n[Events]\nFormat: Layer, Start, End, Style, Text\nDialogue: 0,0:00:01.00,0:00:02.00,Default,hi\n", "a.ass", "ass"],
+    ["1\n00:00:01,000 --> 00:00:02,000\nhi\n", "a.srt", "srt"],
+  ];
+  for (const [text, name, format] of cases) {
+    const result = parse.parseText(text, name);
+    assert.equal(result.format, format, `${name}: 格式判别错误`);
+    assert.deepEqual(result.skipped, [], `${name}: 已实现解析器不得进 skipped`);
+    assert.equal(result.cues.length, 1, `${name}: 应解析出 1 条 cue`);
+    assert.equal(result.diagnostics.some((d) => d.code === "parser.not_implemented"), false);
+  }
 });
 
 test("解析分派：未知格式报 parser.unsupported", () => {
@@ -214,7 +267,8 @@ test("pipeline：SRT 端到端跑通并产出报告", () => {
   assert.equal(result.report.inputSha256.length, 64);
   assert.ok(Array.isArray(result.report.skipped));
   assert.equal(result.report.capabilities.parsers.srt, "implemented");
-  assert.equal(result.report.capabilities.parsers.vtt, "not_implemented");
+  assert.equal(result.report.capabilities.parsers.vtt, "implemented");
+  assert.equal(result.report.capabilities.parsers.ass, "implemented");
 });
 
 test("pipeline：多文件按文件名 Unicode 码点序处理", () => {

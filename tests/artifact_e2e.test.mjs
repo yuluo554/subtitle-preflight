@@ -58,13 +58,33 @@ test("产物 e2e：产物里的 ruleset 与仓库镜像逐值一致", () => {
 test("产物 e2e：未实现能力在产物里也是数据（不是文档）", () => {
   const SP = loadArtifact();
   const caps = SP.get("core/pipeline").CAPABILITIES;
-  assert.equal(caps.parsers.vtt, "not_implemented");
-  assert.equal(caps.parsers.ass, "not_implemented");
+  // 三种解析器已在 M2 实现
+  assert.equal(caps.parsers.srt, "implemented");
+  assert.equal(caps.parsers.vtt, "implemented");
+  assert.equal(caps.parsers.ass, "implemented");
   assert.equal(caps.rules.readability, "not_implemented");
   assert.equal(caps.rules.hygiene, "not_implemented");
   assert.equal(caps.exports.markdown, "not_implemented");
   assert.equal(caps.exports.csv, "not_implemented");
   assert.equal(caps.fixes, "not_implemented");
+});
+
+test("产物 e2e：VTT / ASS 在产物里能真的解析出 cue（不是只改了声明）", () => {
+  const SP = loadArtifact();
+  const pipeline = SP.get("core/pipeline");
+  const enc = (s) => new TextEncoder().encode(s);
+  const vtt = "WEBVTT\n\ncue-1\n00:00:01.000 --> 00:00:02.000\nhello\n";
+  const ass = "[Script Info]\nTitle: t\n\n[Events]\nFormat: Layer, Start, End, Style, Text\nDialogue: 0,0:00:01.00,0:00:02.00,Default,hi\n";
+  const out = pipeline.run(
+    [{ name: "a.vtt", bytes: enc(vtt) }, { name: "b.ass", bytes: enc(ass) }],
+    {}
+  );
+  const byName = Object.fromEntries(out.results.map((r) => [r.file.name, r]));
+  assert.equal(byName["a.vtt"].file.format, "vtt");
+  assert.equal(byName["a.vtt"].file.cueCount, 1);
+  assert.equal(byName["b.ass"].file.format, "ass");
+  assert.equal(byName["b.ass"].file.cueCount, 1);
+  assert.equal(byName["b.ass"].cues[0].startMs, 1000);
 });
 
 test("产物 e2e：UI 引用的每个元素 id 都存在于模板里", () => {

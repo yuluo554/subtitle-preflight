@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { appendFileSync, cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ROOT } from "../tools/bundle.mjs";
@@ -169,9 +169,9 @@ test("内容白名单：禁用词命中即抛错，且不是空跑", () => {
   assert.ok(info.banned > 5 && info.shows > 2);
 });
 
-/* ---------- SRT 格式样本 × 当前解析器：0 容差（M2 的桥） ---------- */
+/* ---------- 格式样本 × 当前解析器：0 容差（M2 的桥） ---------- */
 
-const SRAT_FIELDS = [
+const SRT_FIELDS = [
   "index",
   "declaredIndex",
   "startMs",
@@ -182,49 +182,152 @@ const SRAT_FIELDS = [
   "endLine",
 ];
 
+const VTT_FIELDS = [
+  "index",
+  "identifier",
+  "startMs",
+  "endMs",
+  "textLines",
+  "textLineNumbers",
+  "sourceLine",
+  "endLine",
+];
+
+const ASS_FIELDS = [
+  "index",
+  "style",
+  "startMs",
+  "endMs",
+  "textLines",
+  "textLineNumbers",
+  "sourceLine",
+  "endLine",
+];
+
+const FORMAT_IDS = {
+  srt: ["v1-bom", "v2-crlf", "v3-missing-index", "v4-jumped-index", "v5-comma-dot", "v6-gbk", "v7-trailing-space", "v8-blank-noise"],
+  vtt: ["v1-bom", "v2-crlf", "v3-no-cue-id", "v4-note-block", "v5-ms-dot", "v6-gbk", "v7-trailing-space", "v8-blank-noise"],
+  ass: ["v1-bom", "v2-crlf", "v3-format-order", "v4-comment-line", "v5-centiseconds", "v6-gbk", "v7-trailing-space", "v8-blank-noise"],
+};
+
 function decodeSample(truth) {
   const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
   const enc = truth.encoding === "gbk" ? "gbk" : "utf-8";
   let text = new TextDecoder(enc, { fatal: false }).decode(bytes);
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-  return text;
+  // 解析器契约：输入是**已归一化换行**的原文（解码层负责 CRLF/CR → LF）
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
 
-test("格式样本（SRT 侧 8 份）：真值与当前解析器 cue 边界 / 行号映射 0 容差", () => {
+/** 对某格式的 8 份样本做 0 容差对账：cue 数 / 各字段 / 诊断码（剔除解码层诊断）。 */
+function assertFormatSamples(format, fields) {
   const SP = loadCore();
-  const srt = SP.get("core/parse/srt");
+  const parser = SP.get(`core/parse/${format}`);
   const dir = join(ROOT, "data/truth/format");
-  const names = [
-    "srt-v1-bom", "srt-v2-crlf", "srt-v3-missing-index", "srt-v4-jumped-index",
-    "srt-v5-comma-dot", "srt-v6-gbk", "srt-v7-trailing-space", "srt-v8-blank-noise",
-  ];
-  for (const id of names) {
+  for (const suffix of FORMAT_IDS[format]) {
+    const id = `${format}-${suffix}`;
     const truth = JSON.parse(readFileSync(join(dir, `${id}.json`), "utf8"));
-    // 解析器契约：输入是**已归一化换行**的原文（解码层负责 CRLF/CR → LF）
-    const text = decodeSample(truth).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    const parsed = srt.parse(text);
+    const parsed = parser.parse(decodeSample(truth));
+
     assert.equal(parsed.cues.length, truth.cueCount, `${id}: cue 数不一致`);
     assert.equal(parsed.cues.length, truth.cues.length, `${id}: 真值 cues 长度不一致`);
     parsed.cues.forEach((cue, k) => {
       const expected = truth.cues[k];
-      for (const field of SRAT_FIELDS) {
+      for (const field of fields) {
         assert.deepEqual(cue[field], expected[field], `${id} cue#${k + 1} 字段 ${field} 不一致`);
       }
     });
+
+    // 块级诊断（NOTE/Comment）是契约；解码层诊断（decode.*）由解码层负责，不在解析器输出里
+    const expectedDiagnostics = truth.diagnostics.filter((d) => !String(d.code || "").startsWith("decode."));
+    assert.deepEqual(parsed.diagnostics, expectedDiagnostics, `${id}: 诊断码不一致`);
+    assert.deepEqual(parsed.findings, [], `${id}: 解析器不应产出 finding`);
   }
+}
+
+test("格式样本（SRT 侧 8 份）：真值与当前解析器 cue 边界 / 行号映射 0 容差", () => {
+  assertFormatSamples("srt", SRT_FIELDS);
 });
 
-test("格式样本（VTT / ASS 侧）：真值是 M2 目标契约，解析器当前必须显式声明未实现", () => {
-  const SP = loadCore();
-  const parse = SP.get("core/parse/index");
-  for (const [rel, format] of [["vtt-v1-bom.vtt", "vtt"], ["ass-v1-bom.ass", "ass"]]) {
-    const truth = JSON.parse(readFileSync(join(ROOT, "data/truth/format", rel.replace(/\.\w+$/, ".json")), "utf8"));
-    const text = decodeSample(truth);
-    const result = parse.parseText(text, rel);
-    assert.equal(result.format, format, `${rel}: 格式判别错误`);
-    assert.equal(result.cues.length, 0, `${rel}: 未实现时不得返回空成功之外的 cue`);
-    assert.ok(result.skipped.some((s) => s.reason === "not_implemented"), `${rel}: 必须在 skipped 里显式声明`);
+test("格式样本（VTT 侧 8 份）：真值与当前解析器 cue 边界 / 行号映射 0 容差", () => {
+  assertFormatSamples("vtt", VTT_FIELDS);
+});
+
+test("格式样本（ASS 侧 8 份）：真值与当前解析器 cue 边界 / 行号映射 0 容差", () => {
+  assertFormatSamples("ass", ASS_FIELDS);
+});
+
+test("格式样本：三格式 × 8 变体 = 24 份全部进入对账（不是只挑了通过的）", () => {
+  const dir = join(ROOT, "data/truth/format");
+  const covered = new Set();
+  for (const format of ["srt", "vtt", "ass"]) {
+    for (const suffix of FORMAT_IDS[format]) covered.add(`${format}-${suffix}.json`);
   }
+  const onDisk = readdirSync(dir).filter((n) => n.endsWith(".json"));
+  assert.equal(onDisk.length, 24, "真值目录应有 24 份格式真值");
+  assert.deepEqual(onDisk.filter((n) => !covered.has(n)), [], "有真值未被任何对账覆盖");
+});
+
+/* ---------- 时序样本 × 解析 + 规则：端到端对账（T11 为 M3 目标） ---------- */
+
+test("时序样本端到端：除 T11（M3）外全部与真值 expectFindings 0 容差", () => {
+  const SP = loadCore();
+  const pipeline = SP.get("core/pipeline");
+  const dir = join(ROOT, "data/truth/timing");
+  const files = readdirSync(dir).filter((n) => n.endsWith(".json")).sort();
+  assert.equal(files.length, 13, "时序真值应 13 份（12 类 + 基线）");
+
+  const pending = [];
+  for (const file of files) {
+    const truth = JSON.parse(readFileSync(join(dir, file), "utf8"));
+    const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
+    const options = typeof truth.mediaDurationMs === "number" ? { mediaDurationMs: truth.mediaDurationMs } : {};
+    const result = pipeline.run([{ name: truth.sample.split("/").pop(), bytes }], options).results[0];
+    const got = result.report.findings.map((f) => `${f.ruleId}@${f.line}:${f.field}`).sort();
+    const want = truth.expectFindings.map((f) => `${f.ruleId}@${f.line}:${f.field}`).sort();
+
+    if (truth.class === "T11") {
+      // T11 未实现：必须以 skipped 显式声明，不得静默返回空（K7）。M3 补齐后本条转为 0 容差。
+      assert.deepEqual(got, [], "T11 未实现时不得产出 finding");
+      assert.ok(
+        result.report.skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "not_implemented"),
+        "T11 未实现时必须进 skipped[]"
+      );
+      pending.push(file);
+      continue;
+    }
+    assert.deepEqual(got, want, `${file}: 端到端检出与真值不一致`);
+  }
+  assert.deepEqual(pending, ["t11-fps-drift.json"], "M2 收尾时唯一未达成的时序类应是 T11");
+});
+
+test("解码层对齐：CRLF / BOM / GBK 形态在文件卡片与报告里都有标注", () => {
+  const SP = loadCore();
+  const pipeline = SP.get("core/pipeline");
+  const dir = join(ROOT, "data/truth/format");
+  // 每格式各挑 3 份：CRLF（换行）、BOM（字节前导）、GBK（编码回退）
+  const picks = [];
+  for (const format of ["srt", "vtt", "ass"]) {
+    for (const suffix of ["v1-bom", "v2-crlf", "v6-gbk"]) picks.push(`${format}-${suffix}`);
+  }
+  for (const id of picks) {
+    const truth = JSON.parse(readFileSync(join(dir, `${id}.json`), "utf8"));
+    const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
+    const result = pipeline.run([{ name: truth.sample.split("/").pop(), bytes }], {}).results[0];
+
+    assert.equal(result.file.encoding, truth.encoding, `${id}: 编码标注不一致`);
+    assert.equal(result.file.bom, truth.bom, `${id}: BOM 标注不一致`);
+    assert.equal(result.file.eol, truth.eol === "crlf" ? "crlf" : "lf", `${id}: 换行标注不一致`);
+    // 报告里保留同一条解码层诊断（GBK 回退不得静默）
+    const codes = result.report.diagnostics.map((d) => d.code);
+    if (truth.encoding === "gbk") {
+      assert.ok(codes.includes("decode.gbk-fallback"), `${id}: GBK 样本必须显式上报回退`);
+      assert.equal(result.file.fallback, true, `${id}: fallback 标注未置位`);
+    } else {
+      assert.equal(result.file.fallback, false, `${id}: 非 GBK 样本不应标回退`);
+    }
+  }
+  assert.equal(picks.length, 9, "应覆盖 3 格式 × {BOM, CRLF, GBK}");
 });
 
 test("真值文件：禁止出现 observed / actual / message（抽样 3 份深查）", () => {

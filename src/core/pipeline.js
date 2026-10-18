@@ -13,7 +13,7 @@ SP.define(
     "use strict";
 
     const CAPABILITIES = {
-      parsers: { srt: "implemented", vtt: "not_implemented", ass: "not_implemented" },
+      parsers: { srt: "implemented", vtt: "implemented", ass: "implemented" },
       rules: {
         timing: "partial",
         readability: "not_implemented",

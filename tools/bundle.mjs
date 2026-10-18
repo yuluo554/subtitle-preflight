@@ -19,6 +19,8 @@ export const SOURCE_FILES = [
   "src/core/sha256.js",
   "src/core/decode.js",
   "src/core/parse/srt.js",
+  "src/core/parse/vtt.js",
+  "src/core/parse/ass.js",
   "src/core/parse/index.js",
   "src/core/rules/timing.js",
   "src/core/report.js",

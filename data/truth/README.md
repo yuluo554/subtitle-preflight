@@ -40,6 +40,10 @@ data/truth/coverage.json      覆盖度矩阵（口径键 → 正例/反例样�
 7. **内容白名单**：只用虚构剧名（`示例剧` / `Sample Show`）与占位角色名（`角色甲` / `Character A`）。
    生成器内置禁用词表（真实影视/角色/演员/字幕站），命中即抛错。
 8. **样本与真值同提交**：改样本必须同改真值并重跑 `gen-samples --check`。
+9. **块内空行口径（G13，M2 决定）**：SRT 的**块内空行 = 块终止符**——空行之后的行不再属于该块；
+   若不构成合法块头，则显式报 `timing.unparsable-timecode`（**不得静默丢弃**）。
+   本决定**不放宽**口径，故样本与真值无需改动；锚定于 `tests/parse_srt.test.mjs`。
+   （`srt-v8-blank-noise` 只覆盖块间/首尾空行，不是块内空行。）
 
 ## 3. 规则域清单（人类可读真源）
 
@@ -102,8 +106,9 @@ data/truth/coverage.json      覆盖度矩阵（口径键 → 正例/反例样�
 「毫秒点号」用 `MM:SS.mmm` 短形态；ASS 的「序号缺失」用 `Format:` 字段乱序、「跳号」用 `Comment:` 行、
 「厘秒」即 ASS 原生 `H:MM:SS.cc`。
 
-**SRT 侧的 8 份格式样本已被当前解析器逐字节复现**（`tests/samples_generator.test.mjs` 断言行号映射与 cue 边界 0 容差）；
-VTT/ASS 侧是 M2 的目标契约，本轮只做结构校验。
+**24 份格式样本（SRT/VTT/ASS 各 8 份）已被当前解析器 0 容差复现**：cue 边界、行号映射（`sourceLine` /
+`timeLine` / `endLine` / `textLineNumbers`）与解析诊断码逐项相等（`tests/samples_generator.test.mjs`）。
+M1 时 VTT/ASS 侧只是目标契约，M2 起已是实装。
 
 ## 5. 命令
 
@@ -119,7 +124,7 @@ node tools/check-truth.mjs            # 真值门：一一对应 / 禁字段 / �
 
 | 项 | 当前状态 | 何时可验 |
 |---|---|---|
-| VTT / ASS 真值 | 目标契约，解析器未实现（M2） | M2 |
+| VTT / ASS 真值 | ✅ 已达成（M2）：解析器已实装，16 份样本 0 容差 | 已验（M2） |
 | `timing.fps-drift` 正例 | 样本已落库，规则未实现（M3） | M3 |
 | 可读性 / 卫生真值 | 标注与独立判定式一致，规则未实现（M4/M5） | M4 / M5 |
 | GBK 变体再生成 | 依赖宿主 `TextDecoder('gbk')`（Node 需含完整 ICU）；`--check` 会在缺 ICU 时报错而非静默 | 同左 |

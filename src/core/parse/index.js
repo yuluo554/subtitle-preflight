@@ -2,10 +2,9 @@
  * 格式判别与解析分派。
  *
  * 纪律：**按文件内容形态判别，不按扩展名**（扩展名只作提示）。
- * 已声明但未实现的解析器必须返回 `parser.not_implemented`，不得返回空成功——
- * 否则"没做"会被读成"通过"。
+ * SRT / VTT / ASS 三格式均已实现；解析器各自返回 cue / findings / diagnostics / skipped。
  */
-SP.define("core/parse/index", ["core/parse/srt"], function (srt) {
+SP.define("core/parse/index", ["core/parse/srt", "core/parse/vtt", "core/parse/ass"], function (srt, vtt, ass) {
   "use strict";
 
   const FORMAT_LABEL = {
@@ -29,14 +28,7 @@ SP.define("core/parse/index", ["core/parse/srt"], function (srt) {
     return "unknown";
   }
 
-  function notImplemented(format) {
-    return {
-      cues: [],
-      findings: [],
-      diagnostics: [{ code: "parser.not_implemented", format, detail: FORMAT_LABEL[format] + " 解析器尚未实现" }],
-      skipped: [{ kind: "parser", format, reason: "not_implemented" }],
-    };
-  }
+  const PARSERS = { srt: srt, vtt: vtt, ass: ass };
 
   /**
    * @param {string} text 已归一化换行的原文
@@ -44,26 +36,15 @@ SP.define("core/parse/index", ["core/parse/srt"], function (srt) {
    */
   function parseText(text, fileName) {
     const format = detectFormat(text, fileName);
-
-    if (format === "srt") {
-      const parsed = srt.parse(text);
+    const parser = PARSERS[format];
+    if (parser) {
+      const parsed = parser.parse(text);
       return {
         format,
         cues: parsed.cues,
         findings: parsed.findings,
         diagnostics: parsed.diagnostics,
         skipped: [],
-      };
-    }
-
-    if (format === "vtt" || format === "ass") {
-      const stub = notImplemented(format);
-      return {
-        format,
-        cues: stub.cues,
-        findings: stub.findings,
-        diagnostics: stub.diagnostics,
-        skipped: stub.skipped,
       };
     }
 

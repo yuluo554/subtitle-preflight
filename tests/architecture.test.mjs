@@ -83,6 +83,8 @@ test("架构：构建清单里的每个模块都在源码里被定义", () => {
     "core/sha256",
     "core/decode",
     "core/parse/srt",
+    "core/parse/vtt",
+    "core/parse/ass",
     "core/parse/index",
     "core/rules/timing",
     "core/report",

@@ -4,47 +4,36 @@
  * 纪律：
  *  - 行号一律 1-based，指向**归一化后的原文行**（换行归一不增删行）。
  *  - 容忍：序号缺失 / 跳号 / 与块数不一致 / `,` 与 `.` 混用 / 行尾空白 / 空行噪声。
+ *  - 时间码起点允许前导 `-`（负毫秒），交给规则层报 `timing.negative-start`（G11）。
  *  - 时间码无法解析时走回退路径并产出 `timing.unparsable-timecode`，不静默丢弃。
  */
 SP.define("core/parse/srt", [], function () {
   "use strict";
 
-  const TIMECODE = /^\s*(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})\s*-->\s*(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})(?:\s+.*)?\s*$/;
+  const TIMECODE = /^\s*(-?)(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})\s*-->\s*(-?)(\d{1,4}):(\d{1,2}):(\d{1,2})[,.](\d{1,4})(?:\s+.*)?\s*$/;
   const INDEX_LINE = /^\s*\d+\s*$/;
 
-  function toMs(hour, minute, second, fraction) {
+  function toMs(hour, minute, second, fraction, sign) {
     const digits = fraction.length;
     let ms;
     if (digits === 1) ms = Number(fraction) * 100;
     else if (digits === 2) ms = Number(fraction) * 10;
     else if (digits === 3) ms = Number(fraction);
     else ms = Math.floor(Number(fraction) / 10); // 4 位及以上：截断到毫秒
-    return Number(hour) * 3600000 + Number(minute) * 60000 + Number(second) * 1000 + ms;
+    const value = Number(hour) * 3600000 + Number(minute) * 60000 + Number(second) * 1000 + ms;
+    return sign === "-" ? -value : value;
   }
 
-  function precisionIssues(match, line) {
+  function precisionIssues(side, line, field) {
     const issues = [];
-    const startHour = match[1];
-    const endHour = match[5];
-    const startFrac = match[4];
-    const endFrac = match[8];
-    if (startHour.length > 2) {
-      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "小时位超过 2 位" });
+    if (side.hour.length > 2) {
+      issues.push({ code: "parse.timecode-precision", line, field, detail: "小时位超过 2 位" });
     }
-    if (endHour.length > 2) {
-      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "小时位超过 2 位" });
+    if (side.fraction.length > 3) {
+      issues.push({ code: "parse.timecode-precision", line, field, detail: "亚毫秒精度被截断" });
     }
-    if (startFrac.length > 3) {
-      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "亚毫秒精度被截断" });
-    }
-    if (endFrac.length > 3) {
-      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "亚毫秒精度被截断" });
-    }
-    if (startFrac.length !== 3) {
-      issues.push({ code: "parse.timecode-precision", line, field: "startMs", detail: "毫秒位不是 3 位" });
-    }
-    if (endFrac.length !== 3) {
-      issues.push({ code: "parse.timecode-precision", line, field: "endMs", detail: "毫秒位不是 3 位" });
+    if (side.fraction.length !== 3) {
+      issues.push({ code: "parse.timecode-precision", line, field, detail: "毫秒位不是 3 位" });
     }
     return issues;
   }
@@ -101,7 +90,19 @@ SP.define("core/parse/srt", [], function () {
         continue;
       }
 
-      for (const issue of precisionIssues(match, timeLineIdx + 1)) {
+      // 序号契约：缺序号 / 跳号都记诊断（真值 data/truth/format/srt-v3,v4）
+      if (declaredIndex === null) {
+        diagnostics.push({ code: "parse.missing-index", line: timeLineIdx + 1 });
+      } else if (declaredIndex !== cues.length + 1) {
+        diagnostics.push({ code: "parse.index-mismatch", line: blockStart + 1 });
+      }
+
+      const startSide = { hour: match[2], fraction: match[5] };
+      const endSide = { hour: match[7], fraction: match[10] };
+      for (const issue of precisionIssues(startSide, timeLineIdx + 1, "startMs")) {
+        diagnostics.push(issue);
+      }
+      for (const issue of precisionIssues(endSide, timeLineIdx + 1, "endMs")) {
         diagnostics.push(issue);
       }
 
@@ -129,8 +130,8 @@ SP.define("core/parse/srt", [], function () {
       cues.push({
         index: cues.length + 1,
         declaredIndex,
-        startMs: toMs(match[1], match[2], match[3], match[4]),
-        endMs: toMs(match[5], match[6], match[7], match[8]),
+        startMs: toMs(match[2], match[3], match[4], match[5], match[1]),
+        endMs: toMs(match[7], match[8], match[9], match[10], match[6]),
         textLines,
         textLineNumbers,
         format: "srt",
