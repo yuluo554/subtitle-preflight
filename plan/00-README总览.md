@@ -53,48 +53,50 @@
 
 | 承诺项 | 素材来源 | 交付物内可达性 | 核验方式 | 状态 |
 |---|---|---|---|---|
-| 三格式解析（SRT/VTT/ASS） | 自建 24 份样本（3 格式 × 8 变体） | 单文件内三个解析器，零外部依赖 | `data/truth/` 逐条标注 vs 解析输出，0 容差 | ⬜ 待 M2 |
-| 原文行号映射 | 同上（样本自带行号标注） | cue 模型的 `sourceLine`/`endLine` 字段 | 24 份样本行号误差 0 | ⬜ 待 M2 |
-| 编码嗅探与 GBK 回退 | 自建 GBK 样本 | `TextDecoder('gbk')`，浏览器原生 | 中文逐字比对一致 + 界面标注回退 | ⬜ 待 M2 |
-| 12 类时序缺陷 | 自建 12 类缺陷样本 | 规则引擎 `timing.*` | 检出率 100% / 误报 0 | ⬜ 待 M3 |
+| 三格式解析（SRT/VTT/ASS） | 自建 24 份样本（3 格式 × 8 变体） | 单文件内三个解析器，零外部依赖 | `data/truth/` 逐条标注 vs 解析输出，0 容差 | 🟡 SRT 已通；VTT/ASS 待 M2 |
+| 原文行号映射 | 同上（样本自带行号标注） | cue 模型的 `sourceLine`/`endLine` 字段 | 24 份样本行号误差 0 | 🟡 SRT 已通；待 M2 扩至 24 份 |
+| 编码嗅探与 GBK 回退 | 自建 GBK 样本 | `TextDecoder('gbk')`，浏览器原生 | 中文逐字比对一致 + 界面标注回退 | 🟡 已实现并有测试；样本待 M1 落库 |
+| 12 类时序缺陷 | 自建 12 类缺陷样本 | 规则引擎 `timing.*` | 检出率 100% / 误报 0 | 🟡 T01–T10/T12 已通；T11 待 M3 |
 | fps 漂移拟合 | 自建漂移样本（声明 fps） | 网格搜索 `timing.drift` | 复原误差 < 1 帧 + 双跑参数一致 | ⬜ 待 M3 |
 | CPS / 行长判定 | 200 条人工标注 cue | 规则引擎 `readability.*` | 与标注 100% 一致 + 边界单测 | ⬜ 待 M4 |
 | 10 类卫生规则 | 30 条 golden set | 规则引擎 `hygiene.*` | precision 100% / recall ≥ 90% | ⬜ 待 M4 |
-| 行号定位的 finding | 行号映射表 | `findings[].line` | 每条 finding 可回到原文行 | ⬜ 待 M5 |
-| JSON/MD/CSV 三导出 | 报告模块 | 界面按钮，Blob 下载 | schema 校验 + byte 级双跑一致 | ⬜ 待 M5 |
+| 行号定位的 finding | 行号映射表 | `findings[].line` | 每条 finding 可回到原文行 | 🟡 规则 finding 已带 line；样本待 M1 |
+| JSON/MD/CSV 三导出 | 报告模块 | 界面按钮，Blob 下载 | schema 校验 + byte 级双跑一致 | 🟡 JSON 已通；MD/CSV 待 M5 |
 | 可逆修复 + diff | 修复白名单 | `fixes[]` + 导出新文件 | 重跑违规数严格单调下降 | ⬜ 待 M5 |
-| 单文件产物 | `tools/build.mjs` 内联构建 | `dist/subtitle-preflight.html` | 零外链断言 + 断网打开 e2e | ⬜ 待 M5 |
-| 零网络请求 | 形态本身 | 无 CDN/字体/遥测 | 静态扫描（无 `http(s)://`、无 `fetch`/`XHR`）+ 断网 e2e | ⬜ 待 M5 |
+| 单文件产物 | `tools/build.mjs` 内联构建 | `dist/subtitle-preflight.html` | 零外链断言 + 断网打开 e2e | ✅ M0（`build.test` + `artifact_e2e`） |
+| 零网络请求 | 形态本身 | 无 CDN/字体/遥测 | 静态扫描（无 `http(s)://`、无 `fetch`/`XHR`）+ 断网 e2e | ✅ M0（静态扫描 + headless e2e 实测 0 外网请求） |
 | 性能口径（10MB/5000 cue） | 自建大样本 | 全流程计时 | 基准实测，结果以末态回填，不写死承诺 | ⬜ 待 M5 |
 
 ## 四、招牌动词表
 
 | 能力名词 | 哪条交付态命令/操作产出它 | 哪条基准/测试断言它 |
 |---|---|---|
-| 解析（三格式） | 页面"拖入文件"→ 解析结果面板 | `tests/parse_truth.test.mjs`（24 份样本 0 容差） |
-| 行号映射 | 解析结果面板的 `sourceLine` 列 | `tests/line_map.test.mjs`（行号误差 0） |
-| 编码嗅探 | 文件卡片上的"编码：GBK（回退）"标注 | `tests/encoding.test.mjs`（GBK 逐字一致） |
-| 时序体检 | 页面"体检"→ 时序分组 | `tests/timing_rules.test.mjs`（12 类检出/误报） |
-| fps 漂移拟合 | 时序分组的"漂移诊断"卡片 | `tests/drift_fit.test.mjs`（<1 帧 + 双跑一致） |
-| 阅读速度（CPS） | 体检结果的"可读性"分组 | `tests/readability_cps.test.mjs`（200 条标注 + 边界） |
-| 行长 | 可读性分组（含实测值与阈值） | `tests/readability_line.test.mjs` |
-| 排版卫生 | 体检结果的"卫生"分组 | `tests/hygiene_golden.test.mjs`（precision 100%） |
-| 行号定位 | 每条 finding 的"第 N 行"链接 | `tests/finding_locator.test.mjs`（跳转命中） |
-| JSON / Markdown / CSV 报告 | 页面"导出"三个按钮 | `tests/report_determinism.test.mjs`（byte 级双跑一致 + schema） |
-| 可逆修复 | 页面"导出修复后字幕" | `tests/fix_monotonic.test.mjs`（违规数单调下降） |
-| 单文件产物 | `node tools/build.mjs` → `dist/subtitle-preflight.html` | `tests/e2e_single_file.test.mjs`（零外链 + 断网跑通） |
+| 解析（SRT） | 页面"拖入文件"/粘贴 → 文件卡片 | `tests/parse_srt.test.mjs`（8 类变体 + 行号映射） |
+| 解析（VTT/ASS） | 同入口（当前返回 `parser.not_implemented`） | `tests/parse_srt.test.mjs`（未实现必须显式声明） |
+| 行号映射 | 结果区"第 N 行" | `tests/parse_srt.test.mjs`（sourceLine/timeLine/textLineNumbers） |
+| 编码嗅探 | 文件卡片上的"GBK 回退"标注 | `tests/decode.test.mjs`（GBK 逐字一致 + fallback 标注） |
+| 时序体检 | 页面"解析粘贴内容"/拖入 → 体检结果 | `tests/timing_rules.test.mjs`（T01–T10、T12 + 边界反例） |
+| fps 漂移拟合 | 时序分组的"漂移诊断"卡片 | `tests/drift_fit.test.mjs`（M3 产出；当前 `skipped[]`） |
+| 阅读速度（CPS） | 体检结果的"可读性"分组 | `tests/readability_cps.test.mjs`（M4 产出） |
+| 行长 | 可读性分组（含实测值与阈值） | `tests/readability_line.test.mjs`（M4 产出） |
+| 排版卫生 | 体检结果的"卫生"分组 | `tests/hygiene_golden.test.mjs`（M5 产出） |
+| 行号定位 | 每条 finding 的"第 N 行"链接 | `tests/artifact_e2e.test.mjs`（渲染层行号列）+ `timing_rules` |
+| JSON 报告 | 页面"导出 JSON" | `tests/report_determinism.test.mjs`（byte 级双跑 + 键序） |
+| Markdown / CSV | 页面"导出"按钮（当前置灰） | `tests/report_determinism.test.mjs`（M5 补齐） |
+| 可逆修复 | 页面"导出修复后字幕"（当前置灰） | `tests/fix_monotonic.test.mjs`（M5 产出） |
+| 单文件产物 | `node tools/build.mjs` → `dist/subtitle-preflight.html` | `tests/build.test.mjs` + `tests/artifact_e2e.test.mjs` + `tools/e2e-browser.mjs` |
 
 ## 五、提交材料实物表（一物一证）
 
 | 承诺项（plan/01 §3） | 应存在的文件路径 | 由哪个里程碑产出 | 用哪条命令核对 |
 |---|---|---|---|
-| 单文件产物 | `dist/subtitle-preflight.html` | M5 | `node tools/build.mjs --check` + `ls dist/` |
-| 源码与构建 | `src/`、`tools/build.mjs` | M2–M5 | `git ls-files src tools` |
-| 基准样本与真值 | `data/samples/`、`data/truth/` | M1 | `git ls-files data/samples data/truth` + 条数对账脚本 |
-| README | `README.md` | M5 | `git ls-files README.md` |
+| 单文件产物 | `dist/subtitle-preflight.html` | M0 起持续构建，M5 定稿 | `node tools/build.mjs --check` + `ls dist/` |
+| 源码与构建 | `src/`、`tools/build.mjs` | M0 起 | `git ls-files src tools` |
+| 基准样本与真值 | `data/samples/`、`data/truth/` | M1 | `git ls-files data/samples data/truth` + `tools/check-truth.mjs` |
+| README | `README.md` | M0 起持续更新 | `git ls-files README.md` |
 | 技术报告 | `docs/技术报告.md` | M5 | `git ls-files docs` |
-| 口径文档 | `data/README.md` | M0（本提交） | `git ls-files data/README.md` |
-| 测试与基准 | `tests/` | M2–M5 | `node --test tests/*.test.mjs` |
+| 口径文档 | `data/README.md` | M0 | `git ls-files data/README.md` + `node tools/check-ruleset.mjs` |
+| 测试与基准 | `tests/` | M0 起 | `npm test` |
 | 发布留档 | `plan/RELEASE-M6.md` | M6 | `git cat-file -e <tag>:plan/RELEASE-M6.md` |
 
 ## 六、里程碑与 DoD
