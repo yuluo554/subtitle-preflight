@@ -1,0 +1,26 @@
+{
+  "sample": "timing/t06-duplicate-cue.srt",
+  "class": "T06",
+  "primaryRuleId": "timing.duplicate-cue",
+  "note": "第 2 条与第 1 条起止与文本完全相同",
+  "expectFindings": [
+    {
+      "ruleId": "timing.duplicate-cue",
+      "line": 6,
+      "field": "text"
+    },
+    {
+      "ruleId": "timing.overlap",
+      "line": 6,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t06-duplicate-cue",
+      "cls": "T06",
+      "ruleId": "timing.duplicate-cue",
+      "diffNonEmpty": true
+    }
+  ]
+}

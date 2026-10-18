@@ -6,3 +6,9 @@
 *.md text eol=lf
 *.yml text eol=lf
 *.css text eol=lf
+
+# ---- 生成的样本与真值：字节即口径 ----
+# data/samples/** 含 CRLF、UTF-8 BOM 与 GBK 字节变体；任何行尾归一都会破坏
+# `node tools/gen-samples.mjs --check` 的位级断言。因此整体声明为非文本。
+data/samples/** -text
+data/truth/** -text

@@ -1,0 +1,80 @@
+{
+  "sample": "format/vtt-v3-no-cue-id.vtt",
+  "format": "vtt",
+  "variant": "no-cue-id",
+  "encoding": "utf-8",
+  "bom": null,
+  "eol": "lf",
+  "cueCount": 4,
+  "cues": [
+    {
+      "index": 1,
+      "identifier": null,
+      "startMs": 1000,
+      "endMs": 3000,
+      "textLines": [
+        "Character A: The night flight begins."
+      ],
+      "textLineNumbers": [
+        4
+      ],
+      "sourceLine": 3,
+      "endLine": 4
+    },
+    {
+      "index": 2,
+      "identifier": null,
+      "startMs": 3500,
+      "endMs": 6000,
+      "textLines": [
+        "Character B: Which way is the lighthouse?",
+        "The wind is stronger today."
+      ],
+      "textLineNumbers": [
+        7,
+        8
+      ],
+      "sourceLine": 6,
+      "endLine": 8
+    },
+    {
+      "index": 3,
+      "identifier": null,
+      "startMs": 6500,
+      "endMs": 9000,
+      "textLines": [
+        "Character A: Follow the waves."
+      ],
+      "textLineNumbers": [
+        11
+      ],
+      "sourceLine": 10,
+      "endLine": 11
+    },
+    {
+      "index": 4,
+      "identifier": null,
+      "startMs": 9500,
+      "endMs": 12000,
+      "textLines": [
+        "Narrator: This is episode one of Sample Show."
+      ],
+      "textLineNumbers": [
+        14
+      ],
+      "sourceLine": 13,
+      "endLine": 14
+    }
+  ],
+  "diagnostics": [],
+  "plants": [
+    {
+      "id": "vtt-v3-no-cue-id",
+      "variant": "no-cue-id",
+      "mode": "mutation",
+      "diffNonEmpty": true,
+      "baseBytes": 341,
+      "variantBytes": 317
+    }
+  ]
+}

@@ -1,0 +1,2496 @@
+{
+  "sample": "readability/readability-zh.srt",
+  "domain": "readability",
+  "lang": "zh",
+  "cueCount": 60,
+  "lineConvention": "sourceLine（文本类 finding）",
+  "cues": [
+    {
+      "index": 1,
+      "line": 1,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "line": 5,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "line": 9,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 7000,
+      "maxLineWidthMilli": 7000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "line": 13,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 8000,
+      "maxLineWidthMilli": 8000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "line": 17,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 9000,
+      "maxLineWidthMilli": 9000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "line": 21,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 10000,
+      "maxLineWidthMilli": 10000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.cps"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "line": 25,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 11000,
+      "maxLineWidthMilli": 11000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.cps"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "line": 29,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 12000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.cps"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "line": 33,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 14000,
+      "maxLineWidthMilli": 14000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "line": 37,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 15000,
+      "maxLineWidthMilli": 15000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "line": 41,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 16000,
+      "maxLineWidthMilli": 16000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 12,
+      "line": 45,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 17000,
+      "maxLineWidthMilli": 17000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.line-length"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 13,
+      "line": 49,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 18000,
+      "maxLineWidthMilli": 18000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.line-length"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 14,
+      "line": 53,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 15,
+      "line": 57,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 8000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 2,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 16,
+      "line": 62,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 3,
+      "expectFindings": [
+        "readability.too-many-lines"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 17,
+      "line": 68,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 1000,
+      "maxLineWidthMilli": 1000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.too-few-chars"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 18,
+      "line": 72,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 2000,
+      "maxLineWidthMilli": 2000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 19,
+      "line": 76,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 3000,
+      "maxLineWidthMilli": 3000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 20,
+      "line": 80,
+      "lang": "zh",
+      "durationMs": 799,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.duration-short"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 21,
+      "line": 84,
+      "lang": "zh",
+      "durationMs": 800,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 22,
+      "line": 88,
+      "lang": "zh",
+      "durationMs": 7000,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 23,
+      "line": 92,
+      "lang": "zh",
+      "durationMs": 7001,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.duration-long"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 24,
+      "line": 96,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 25,
+      "line": 100,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.repeated-text"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 26,
+      "line": 104,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "line": 108,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.repeated-text"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "line": 112,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "line": 116,
+      "lang": "zh",
+      "durationMs": 3000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.repeated-text"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 30,
+      "line": 120,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "line": 124,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "line": 128,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 3000,
+      "maxLineWidthMilli": 3000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "line": 132,
+      "lang": "zh",
+      "durationMs": 1000,
+      "charsMilli": 20000,
+      "maxLineWidthMilli": 10000,
+      "visibleLineCount": 2,
+      "expectFindings": [
+        "readability.cps"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 34,
+      "line": 137,
+      "lang": "zh",
+      "durationMs": 7001,
+      "charsMilli": 51000,
+      "maxLineWidthMilli": 17000,
+      "visibleLineCount": 3,
+      "expectFindings": [
+        "readability.duration-long",
+        "readability.line-length",
+        "readability.too-many-lines"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 35,
+      "line": 143,
+      "lang": "zh",
+      "durationMs": 900,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 12000,
+      "visibleLineCount": 1,
+      "expectFindings": [
+        "readability.cps"
+      ],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 36,
+      "line": 147,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 11000,
+      "maxLineWidthMilli": 11000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 37,
+      "line": 151,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 12000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "line": 155,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 39,
+      "line": 159,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 40,
+      "line": 163,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 41,
+      "line": 167,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 7000,
+      "maxLineWidthMilli": 7000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 42,
+      "line": 171,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 8000,
+      "maxLineWidthMilli": 8000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 43,
+      "line": 175,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 9000,
+      "maxLineWidthMilli": 9000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 44,
+      "line": 179,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 10000,
+      "maxLineWidthMilli": 10000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 45,
+      "line": 183,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 11000,
+      "maxLineWidthMilli": 11000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 46,
+      "line": 187,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 12000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 47,
+      "line": 191,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 48,
+      "line": 195,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 49,
+      "line": 199,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 50,
+      "line": 203,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 7000,
+      "maxLineWidthMilli": 7000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 51,
+      "line": 207,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 8000,
+      "maxLineWidthMilli": 8000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 52,
+      "line": 211,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 9000,
+      "maxLineWidthMilli": 9000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 53,
+      "line": 215,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 10000,
+      "maxLineWidthMilli": 10000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 54,
+      "line": 219,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 11000,
+      "maxLineWidthMilli": 11000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 55,
+      "line": 223,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 12000,
+      "maxLineWidthMilli": 12000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 56,
+      "line": 227,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 4000,
+      "maxLineWidthMilli": 4000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 57,
+      "line": 231,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 5000,
+      "maxLineWidthMilli": 5000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 58,
+      "line": 235,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 6000,
+      "maxLineWidthMilli": 6000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 59,
+      "line": 239,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 7000,
+      "maxLineWidthMilli": 7000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    },
+    {
+      "index": 60,
+      "line": 243,
+      "lang": "zh",
+      "durationMs": 2000,
+      "charsMilli": 8000,
+      "maxLineWidthMilli": 8000,
+      "visibleLineCount": 1,
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "readability.cps",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.line-length",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-many-lines",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.too-few-chars",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-short",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.duration-long",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        },
+        {
+          "ruleId": "readability.repeated-text",
+          "why": "本条未设计该缺陷，且独立判定式复核一致"
+        }
+      ]
+    }
+  ],
+  "expectFindings": [
+    {
+      "ruleId": "readability.cps",
+      "line": 21
+    },
+    {
+      "ruleId": "readability.cps",
+      "line": 25
+    },
+    {
+      "ruleId": "readability.cps",
+      "line": 29
+    },
+    {
+      "ruleId": "readability.line-length",
+      "line": 45
+    },
+    {
+      "ruleId": "readability.line-length",
+      "line": 49
+    },
+    {
+      "ruleId": "readability.too-many-lines",
+      "line": 62
+    },
+    {
+      "ruleId": "readability.too-few-chars",
+      "line": 68
+    },
+    {
+      "ruleId": "readability.duration-short",
+      "line": 80
+    },
+    {
+      "ruleId": "readability.duration-long",
+      "line": 92
+    },
+    {
+      "ruleId": "readability.repeated-text",
+      "line": 100
+    },
+    {
+      "ruleId": "readability.repeated-text",
+      "line": 108
+    },
+    {
+      "ruleId": "readability.repeated-text",
+      "line": 116
+    },
+    {
+      "ruleId": "readability.cps",
+      "line": 132
+    },
+    {
+      "ruleId": "readability.duration-long",
+      "line": 137
+    },
+    {
+      "ruleId": "readability.line-length",
+      "line": 137
+    },
+    {
+      "ruleId": "readability.too-many-lines",
+      "line": 137
+    },
+    {
+      "ruleId": "readability.cps",
+      "line": 143
+    }
+  ],
+  "expectNoFindings": [],
+  "planted": [
+    {
+      "id": "readability-zh.srt#readability.cps",
+      "ruleId": "readability.cps",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.line-length",
+      "ruleId": "readability.line-length",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.too-many-lines",
+      "ruleId": "readability.too-many-lines",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.too-few-chars",
+      "ruleId": "readability.too-few-chars",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.duration-short",
+      "ruleId": "readability.duration-short",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.duration-long",
+      "ruleId": "readability.duration-long",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    },
+    {
+      "id": "readability-zh.srt#readability.repeated-text",
+      "ruleId": "readability.repeated-text",
+      "mode": "clean-twin",
+      "diffNonEmpty": true,
+      "why": "干净孪生（中和该规则的最小改动）在独立判定式下不再报该规则"
+    }
+  ],
+  "plantedCount": 17
+}

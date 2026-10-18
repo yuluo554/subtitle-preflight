@@ -1,0 +1,36 @@
+{
+  "sample": "timing/t11-fps-drift.srt",
+  "class": "T11",
+  "primaryRuleId": "timing.fps-drift",
+  "note": "25fps 素材按 23.976fps 播放：scale≈1.0427，全段线性漂移",
+  "expectFindings": [
+    {
+      "ruleId": "timing.fps-drift",
+      "line": 1,
+      "field": "fit"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t11-fps-drift",
+      "cls": "T11",
+      "ruleId": "timing.fps-drift",
+      "diffNonEmpty": true
+    }
+  ],
+  "fps": {
+    "declared": 23.976,
+    "playback": 25
+  },
+  "expectedFit": {
+    "scale": 1.042709,
+    "offsetMs": 0,
+    "residualMaxMs": 40,
+    "note": "M3 验收：复原 scale 误差 < 1 帧；offset 近似 0"
+  },
+  "implementationStatus": "pending-M3",
+  "skippedDeclaration": {
+    "ruleId": "timing.fps-drift",
+    "reason": "not_implemented"
+  }
+}

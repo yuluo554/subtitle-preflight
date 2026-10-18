@@ -1,0 +1,22 @@
+{
+  "sample": "timing/t08-past-media-end.srt",
+  "class": "T08",
+  "primaryRuleId": "timing.past-media-end",
+  "note": "末条结束 15000ms 超过声明媒体时长 12000ms",
+  "expectFindings": [
+    {
+      "ruleId": "timing.past-media-end",
+      "line": 30,
+      "field": "endMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t08-past-media-end",
+      "cls": "T08",
+      "ruleId": "timing.past-media-end",
+      "diffNonEmpty": true
+    }
+  ],
+  "mediaDurationMs": 12000
+}

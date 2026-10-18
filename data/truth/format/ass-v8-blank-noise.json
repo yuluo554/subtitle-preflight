@@ -1,0 +1,79 @@
+{
+  "sample": "format/ass-v8-blank-noise.ass",
+  "format": "ass",
+  "variant": "blank-noise",
+  "encoding": "utf-8",
+  "bom": null,
+  "eol": "lf",
+  "cueCount": 4,
+  "cues": [
+    {
+      "index": 1,
+      "style": "Default",
+      "startMs": 1000,
+      "endMs": 3000,
+      "textLines": [
+        "登場人物甲：夜の航海が始まる。"
+      ],
+      "textLineNumbers": [
+        12
+      ],
+      "sourceLine": 12,
+      "endLine": 12
+    },
+    {
+      "index": 2,
+      "style": "Default",
+      "startMs": 3500,
+      "endMs": 6000,
+      "textLines": [
+        "登場人物乙：灯台はどっちだ？",
+        "風が強い。"
+      ],
+      "textLineNumbers": [
+        14
+      ],
+      "sourceLine": 14,
+      "endLine": 14
+    },
+    {
+      "index": 3,
+      "style": "Default",
+      "startMs": 6500,
+      "endMs": 9000,
+      "textLines": [
+        "登場人物甲：波について行こう。"
+      ],
+      "textLineNumbers": [
+        16
+      ],
+      "sourceLine": 16,
+      "endLine": 16
+    },
+    {
+      "index": 4,
+      "style": "Default",
+      "startMs": 9500,
+      "endMs": 12000,
+      "textLines": [
+        "ナレーター：サンプル番組の第一話です。"
+      ],
+      "textLineNumbers": [
+        18
+      ],
+      "sourceLine": 18,
+      "endLine": 18
+    }
+  ],
+  "diagnostics": [],
+  "plants": [
+    {
+      "id": "ass-v8-blank-noise",
+      "variant": "blank-noise",
+      "mode": "mutation",
+      "diffNonEmpty": true,
+      "baseBytes": 614,
+      "variantBytes": 618
+    }
+  ]
+}

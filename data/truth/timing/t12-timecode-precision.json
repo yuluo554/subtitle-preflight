@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t12-timecode-precision.srt",
+  "class": "T12",
+  "primaryRuleId": "timing.timecode-precision",
+  "note": "第 1 条毫秒位写成 2 位",
+  "expectFindings": [
+    {
+      "ruleId": "timing.timecode-precision",
+      "line": 2,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t12-timecode-precision",
+      "cls": "T12",
+      "ruleId": "timing.timecode-precision",
+      "diffNonEmpty": true
+    }
+  ]
+}

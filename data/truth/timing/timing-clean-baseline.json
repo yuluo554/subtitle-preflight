@@ -1,0 +1,22 @@
+{
+  "sample": "timing/timing-clean-baseline.srt",
+  "class": "BASELINE",
+  "note": "8 条合规 cue，用于误报对照",
+  "mediaDurationMs": 60000,
+  "expectFindings": [],
+  "expectNoFindings": [
+    {
+      "ruleId": "timing.overlap",
+      "why": "干净基线：相邻 cue 首尾不重叠"
+    },
+    {
+      "ruleId": "timing.gap-too-small",
+      "why": "干净基线：最小间隔 100ms >= 口径下限"
+    },
+    {
+      "ruleId": "timing.duplicate-cue",
+      "why": "干净基线：8 条文本互不相同"
+    }
+  ],
+  "planted": []
+}

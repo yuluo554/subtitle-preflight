@@ -1,0 +1,31 @@
+{
+  "sample": "timing/t05-non-monotonic.srt",
+  "class": "T05",
+  "primaryRuleId": "timing.non-monotonic",
+  "note": "第 3 条起点（2000）早于第 2 条起点（2600）；时间倒退必然同时构成与第 2 条的重叠（coFindings 已列明）",
+  "expectFindings": [
+    {
+      "ruleId": "timing.file-order-mismatch",
+      "line": 10,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.non-monotonic",
+      "line": 10,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.overlap",
+      "line": 10,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t05-non-monotonic",
+      "cls": "T05",
+      "ruleId": "timing.non-monotonic",
+      "diffNonEmpty": true
+    }
+  ]
+}

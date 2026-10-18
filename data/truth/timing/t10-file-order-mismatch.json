@@ -1,0 +1,41 @@
+{
+  "sample": "timing/t10-file-order-mismatch.srt",
+  "class": "T10",
+  "primaryRuleId": "timing.file-order-mismatch",
+  "note": "两处倒退（第 2、4 位），验证 file-order-mismatch 整段只报一条",
+  "expectFindings": [
+    {
+      "ruleId": "timing.file-order-mismatch",
+      "line": 10,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.non-monotonic",
+      "line": 10,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.overlap",
+      "line": 10,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.non-monotonic",
+      "line": 18,
+      "field": "startMs"
+    },
+    {
+      "ruleId": "timing.overlap",
+      "line": 18,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t10-file-order-mismatch",
+      "cls": "T10",
+      "ruleId": "timing.file-order-mismatch",
+      "diffNonEmpty": true
+    }
+  ]
+}

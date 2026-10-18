@@ -29,6 +29,12 @@ jobs:
       - name: "Ruleset gate (doc section 4 vs mirror)"
         run: node tools/check-ruleset.mjs
 
+      - name: "Samples + truth regenerated bit-identical"
+        run: node tools/gen-samples.mjs --check
+
+      - name: "Truth gate (pairs / coverage / content whitelist)"
+        run: node tools/check-truth.mjs
+
       - name: "Layout gate mutation selftest"
         run: node tools/selftest-layout.mjs
 

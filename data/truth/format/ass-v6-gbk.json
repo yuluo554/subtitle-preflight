@@ -1,0 +1,83 @@
+{
+  "sample": "format/ass-v6-gbk.ass",
+  "format": "ass",
+  "variant": "gbk",
+  "encoding": "gbk",
+  "bom": null,
+  "eol": "lf",
+  "cueCount": 4,
+  "cues": [
+    {
+      "index": 1,
+      "style": "Default",
+      "startMs": 1000,
+      "endMs": 3000,
+      "textLines": [
+        "角色甲：夜航开始了。"
+      ],
+      "textLineNumbers": [
+        12
+      ],
+      "sourceLine": 12,
+      "endLine": 12
+    },
+    {
+      "index": 2,
+      "style": "Default",
+      "startMs": 3500,
+      "endMs": 6000,
+      "textLines": [
+        "角色乙：灯塔在哪边？",
+        "风比昨天大。"
+      ],
+      "textLineNumbers": [
+        13
+      ],
+      "sourceLine": 13,
+      "endLine": 13
+    },
+    {
+      "index": 3,
+      "style": "Default",
+      "startMs": 6500,
+      "endMs": 9000,
+      "textLines": [
+        "角色甲：跟着浪走。"
+      ],
+      "textLineNumbers": [
+        14
+      ],
+      "sourceLine": 14,
+      "endLine": 14
+    },
+    {
+      "index": 4,
+      "style": "Default",
+      "startMs": 9500,
+      "endMs": 12000,
+      "textLines": [
+        "旁白：这是示例剧的第一集。"
+      ],
+      "textLineNumbers": [
+        15
+      ],
+      "sourceLine": 15,
+      "endLine": 15
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "decode.gbk-fallback"
+    }
+  ],
+  "plants": [
+    {
+      "id": "ass-v6-gbk",
+      "variant": "gbk",
+      "mode": "mutation",
+      "diffNonEmpty": true,
+      "baseBytes": 614,
+      "variantBytes": 501
+    }
+  ]
+}

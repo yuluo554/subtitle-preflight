@@ -64,7 +64,7 @@
 | 外部标准文档（平台审核规则） | **不可获取** | 各平台隐式规则不公开、易过期，**不得作为判定底座**；本题阈值一律为自定口径（见 §4）。 |
 | 公开字幕格式规范（SRT/VTT/ASS 语法） | ✅ 已确认语法 | 格式语法为公开事实，仅用于解析器实现，不引入第三方代码。 |
 | 自建合成样本 | ✅ 可完全获取 | 由生成脚本程序化产出，带植入真值（见 §3）。 |
-| 人工标注 cue（200 条）与 golden set（30 条） | ✅ 可完全获取 | 由项目自建并逐条标注，标注准则写在 `data/truth/`。 |
+| 人工标注 cue（200 条）与 golden set（30 条） | ✅ 可完全获取 | 由项目自建并逐条标注（**已落库于 M1**），标注准则写在 `data/truth/README.md`。 |
 
 **结论**：本题**无任何外部数据依赖**。全部样本与真值自建，因此不存在"上游改版导致基准失效"的风险；代价是必须自己保证样本的覆盖度与真实性。
 
@@ -83,19 +83,25 @@
 
 ### 3.2 生成与真值
 
-- 样本由脚本生成（`tools/gen_samples.mjs`，M1 产出），**每个缺陷由脚本显式植入**，同时写出真值文件 `data/truth/<sample>.json`（记录缺陷的 `ruleId` + 行号 + 期望值）。
-- 真值文件与样本文件**同提交入仓**，任何样本改动必须同步改真值；对账脚本 `tools/check_truth.mjs` 校验两者条数一致。
-- **随机性**：如生成器含随机（如随机选句），必须固定种子并在样本头部注释记录；同一命令重复运行产出**逐字节一致**的样本。
-- **覆盖度**：真值按规则域逐项列全（格式变体 8 类 × 3 格式、时序 12 类、可读性 7 类、卫生 10 类）。任一规则没有正例即视为覆盖不足，不得进入 M2 之后。
+- 样本由脚本生成（`tools/gen-samples.mjs`，M1 产出），**每个缺陷由脚本显式植入**，
+  同时写出真值文件 `data/truth/<域>/<样本名>.json`（记录缺陷的 `ruleId` + 行号 + 期望值）。
+- 真值文件与样本文件**同提交入仓**，任何样本改动必须同步改真值；对账脚本 `tools/check-truth.mjs`
+  校验"样本 ↔ 真值一一对应、无孤儿、无观测字段、覆盖度按规则域列全"。标注准则写在 `data/truth/README.md`。
+- **随机性**：同一命令重复运行产出**逐字节一致**；本轮生成器不使用随机（无种子可泄漏）。
+  `tools/gen-samples.mjs --check` 位级比较，并检测孤儿文件。
+- **字节即口径**：`data/samples/**` 含 CRLF / UTF-8 BOM / GBK 变体，`.gitattributes` 对
+  `data/samples/**` 与 `data/truth/**` 声明 `-text`，禁止 git 做行尾或编码归一。
+- **覆盖度**：真值按规则域逐项列全（格式变体 8 类 × 3 格式、时序 12 类、可读性 7 类、卫生 10 类）。
+  任一规则没有正例即视为覆盖不足，不得进入 M2 之后。机器可读矩阵：`data/truth/coverage.json`。
 
 ### 3.3 样本目录约定
 
 ```
-data/samples/format/   24 份格式变体（3 格式 × 8 变体）
-data/samples/timing/   12 类时序缺陷样本
-data/samples/readability/ 200 条标注 cue（可合并为少量文件）
-data/samples/hygiene/  30 条 golden set
-data/truth/            与 samples 一一对应的真值 JSON
+data/samples/format/       24 份格式变体（3 格式 × 8 变体）
+data/samples/timing/       12 类时序缺陷样本 + 1 份干净基线
+data/samples/readability/  200 条标注 cue（4 个文件：zh 60 / en 60 / ja 40 / 混排 40）
+data/samples/hygiene/      30 条 golden set（10 正例 + 10 已知不报 + 10 边界）
+data/truth/                与 samples 一一对应的真值 JSON（+ README.md 标注准则 + coverage.json）
 ```
 
 ---

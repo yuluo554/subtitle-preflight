@@ -1,0 +1,15 @@
+[Script Info]
+Title: 示例剧·夜航
+ScriptType: v4.00+
+WrapStyle: 0
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, Alignment
+Style: Default,DejaVu Sans,20,&H00FFFFFF,2
+
+[Events]
+Format: Layer, Start, End, Style, Text
+Dialogue: 0,0:00:01.00,0:00:03.00,Default,登場人物甲：夜の航海が始まる。  
+Dialogue: 0,0:00:03.50,0:00:06.00,Default,登場人物乙：灯台はどっちだ？\N風が強い。  
+Dialogue: 0,0:00:06.50,0:00:09.00,Default,登場人物甲：波について行こう。  
+Dialogue: 0,0:00:09.50,0:00:12.00,Default,ナレーター：サンプル番組の第一話です。  

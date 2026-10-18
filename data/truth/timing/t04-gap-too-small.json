@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t04-gap-too-small.srt",
+  "class": "T04",
+  "primaryRuleId": "timing.gap-too-small",
+  "note": "第 2 条与第 1 条间隔 79ms（口径下限 80ms）",
+  "expectFindings": [
+    {
+      "ruleId": "timing.gap-too-small",
+      "line": 6,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t04-gap-too-small",
+      "cls": "T04",
+      "ruleId": "timing.gap-too-small",
+      "diffNonEmpty": true
+    }
+  ]
+}

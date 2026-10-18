@@ -13,10 +13,12 @@
     "build:check": "node tools/build.mjs --check",
     "gate:layout": "node tools/check-sprint-layout.mjs",
     "gate:ruleset": "node tools/check-ruleset.mjs",
+    "gate:truth": "node tools/check-truth.mjs",
     "gate:selftest": "node tools/selftest-layout.mjs",
-    "gate": "node tools/check-sprint-layout.mjs && node tools/check-ruleset.mjs && node tools/selftest-layout.mjs",
+    "gate": "node tools/check-sprint-layout.mjs && node tools/check-ruleset.mjs && node tools/check-truth.mjs && node tools/selftest-layout.mjs",
+    "samples:check": "node tools/gen-samples.mjs --check",
     "e2e": "node tools/e2e-browser.mjs",
-    "test": "node --test tests/architecture.test.mjs tests/artifact_e2e.test.mjs tests/build.test.mjs tests/decode.test.mjs tests/gates.test.mjs tests/parse_srt.test.mjs tests/report_determinism.test.mjs tests/timing_rules.test.mjs",
-    "verify": "npm run gate && npm test && node tools/build.mjs --check"
+    "test": "node --test tests/architecture.test.mjs tests/artifact_e2e.test.mjs tests/build.test.mjs tests/decode.test.mjs tests/gates.test.mjs tests/parse_srt.test.mjs tests/report_determinism.test.mjs tests/samples_generator.test.mjs tests/timing_rules.test.mjs tests/truth.test.mjs",
+    "verify": "npm run gate && npm run samples:check && npm test && node tools/build.mjs --check"
   }
 }

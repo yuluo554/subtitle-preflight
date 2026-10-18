@@ -1,0 +1,567 @@
+{
+  "note": "真值覆盖度矩阵（plan/04 §三.6）。positiveSamples 有正例；negativeSamples 有反例；任一规则无正例即视为覆盖不足。",
+  "rulesetVersion": 1,
+  "domains": {
+    "timing": [
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.duplicate-cue",
+        "positiveSamples": [
+          "timing/t06-duplicate-cue"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.file-order-mismatch",
+        "positiveSamples": [
+          "timing/t10-file-order-mismatch"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.fps-drift",
+        "positiveSamples": [
+          "timing/t11-fps-drift"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": "未实现（skipped，K7）；样本 t11-fps-drift.srt 已落库，M3 补齐拟合后转为检出"
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.gap-too-small",
+        "positiveSamples": [
+          "timing/t04-gap-too-small"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.negative-duration",
+        "positiveSamples": [
+          "timing/t03-negative-duration"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.negative-start",
+        "positiveSamples": [
+          "timing/t07-negative-start"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.non-monotonic",
+        "positiveSamples": [
+          "timing/t05-non-monotonic"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.overlap",
+        "positiveSamples": [
+          "timing/t01-overlap"
+        ],
+        "negativeSamples": [
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.past-media-end",
+        "positiveSamples": [
+          "timing/t08-past-media-end"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.timecode-precision",
+        "positiveSamples": [
+          "timing/t12-timecode-precision"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.unparsable-timecode",
+        "positiveSamples": [
+          "timing/t09-unparsable-timecode"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t02-zero-duration",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "timing",
+        "ruleId": "timing.zero-duration",
+        "positiveSamples": [
+          "timing/t02-zero-duration"
+        ],
+        "negativeSamples": [
+          "timing/t01-overlap",
+          "timing/t03-negative-duration",
+          "timing/t04-gap-too-small",
+          "timing/t05-non-monotonic",
+          "timing/t06-duplicate-cue",
+          "timing/t07-negative-start",
+          "timing/t08-past-media-end",
+          "timing/t09-unparsable-timecode",
+          "timing/t10-file-order-mismatch",
+          "timing/t11-fps-drift",
+          "timing/t12-timecode-precision"
+        ],
+        "implements": "M3",
+        "validatedBy": "tools/samples/timingoracle.mjs",
+        "notes": ""
+      }
+    ],
+    "readability": [
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.cps",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.duration-long",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.duration-short",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.line-length",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.repeated-text",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.too-few-chars",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      },
+      {
+        "ruleDomain": "readability",
+        "ruleId": "readability.too-many-lines",
+        "positiveSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "negativeSamples": [
+          "readability/readability-en",
+          "readability/readability-ja",
+          "readability/readability-mixed",
+          "readability/readability-zh"
+        ],
+        "implements": "M4",
+        "validatedBy": "tools/samples/readabilityoracle.mjs",
+        "notes": ""
+      }
+    ],
+    "hygiene": [
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.all-caps",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue29",
+          "hygiene/hygiene-golden#cue9"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue19"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.ass-override-residue",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue25",
+          "hygiene/hygiene-golden#cue5"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue15"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.cjk-latin-spacing",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue1"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue11",
+          "hygiene/hygiene-golden#cue21"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.font-tag-residue",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue27",
+          "hygiene/hygiene-golden#cue7"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue17"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.placeholder-residue",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue26",
+          "hygiene/hygiene-golden#cue6"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue16"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.punctuation-width",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue2",
+          "hygiene/hygiene-golden#cue22"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue12"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.repeated-punctuation",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue10",
+          "hygiene/hygiene-golden#cue30"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue20"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.sdh-marker",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue28",
+          "hygiene/hygiene-golden#cue8"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue18"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.trailing-punctuation",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue23",
+          "hygiene/hygiene-golden#cue3"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue13"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      },
+      {
+        "ruleDomain": "hygiene",
+        "ruleId": "hygiene.unclosed-tag",
+        "positiveSamples": [
+          "hygiene/hygiene-golden#cue24",
+          "hygiene/hygiene-golden#cue4"
+        ],
+        "negativeSamples": [
+          "hygiene/hygiene-golden#cue14"
+        ],
+        "implements": "M5",
+        "validatedBy": "tools/samples/hygieneoracle.mjs",
+        "notes": "反例引用为 cue 级（golden set#cueN）"
+      }
+    ]
+  },
+  "counts": {
+    "formatSamples": 24,
+    "timingSamples": 13,
+    "readabilityCues": 200,
+    "hygieneCues": 30
+  }
+}

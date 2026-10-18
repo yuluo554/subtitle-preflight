@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t02-zero-duration.srt",
+  "class": "T02",
+  "primaryRuleId": "timing.zero-duration",
+  "note": "第 3 条 end == start",
+  "expectFindings": [
+    {
+      "ruleId": "timing.zero-duration",
+      "line": 10,
+      "field": "endMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t02-zero-duration",
+      "cls": "T02",
+      "ruleId": "timing.zero-duration",
+      "diffNonEmpty": true
+    }
+  ]
+}

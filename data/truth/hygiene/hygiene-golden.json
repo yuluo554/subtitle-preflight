@@ -1,0 +1,557 @@
+{
+  "sample": "hygiene/hygiene-golden.srt",
+  "domain": "hygiene",
+  "cueCount": 30,
+  "lineConvention": "sourceLine（文本类 finding）",
+  "cues": [
+    {
+      "index": 1,
+      "line": 1,
+      "rule": "hygiene.cjk-latin-spacing",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.cjk-latin-spacing"
+      ],
+      "expectNoFindings": [],
+      "why": "CJK 与拉丁直接相邻"
+    },
+    {
+      "index": 2,
+      "line": 5,
+      "rule": "hygiene.punctuation-width",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.punctuation-width"
+      ],
+      "expectNoFindings": [],
+      "why": "中文语境出现半角逗号"
+    },
+    {
+      "index": 3,
+      "line": 9,
+      "rule": "hygiene.trailing-punctuation",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.trailing-punctuation"
+      ],
+      "expectNoFindings": [],
+      "why": "行尾为 。"
+    },
+    {
+      "index": 4,
+      "line": 13,
+      "rule": "hygiene.unclosed-tag",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.unclosed-tag"
+      ],
+      "expectNoFindings": [],
+      "why": "<i> 未闭合"
+    },
+    {
+      "index": 5,
+      "line": 17,
+      "rule": "hygiene.ass-override-residue",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.ass-override-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "残留 ASS 覆写块"
+    },
+    {
+      "index": 6,
+      "line": 21,
+      "rule": "hygiene.placeholder-residue",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.placeholder-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "残留 %s 占位符"
+    },
+    {
+      "index": 7,
+      "line": 25,
+      "rule": "hygiene.font-tag-residue",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.font-tag-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "残留 <font> 内联样式"
+    },
+    {
+      "index": 8,
+      "line": 29,
+      "rule": "hygiene.sdh-marker",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.sdh-marker"
+      ],
+      "expectNoFindings": [],
+      "why": "残留 [music] 标记"
+    },
+    {
+      "index": 9,
+      "line": 33,
+      "rule": "hygiene.all-caps",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.all-caps"
+      ],
+      "expectNoFindings": [],
+      "why": "全大写且长度 ≥ 20 半角"
+    },
+    {
+      "index": 10,
+      "line": 37,
+      "rule": "hygiene.repeated-punctuation",
+      "kind": "pos",
+      "expectFindings": [
+        "hygiene.repeated-punctuation"
+      ],
+      "expectNoFindings": [],
+      "why": "感叹号连续 3 次"
+    },
+    {
+      "index": 11,
+      "line": 41,
+      "rule": "hygiene.cjk-latin-spacing",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.cjk-latin-spacing",
+          "why": "中英之间已有空格"
+        }
+      ],
+      "why": "中英之间已有空格"
+    },
+    {
+      "index": 12,
+      "line": 45,
+      "rule": "hygiene.punctuation-width",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.punctuation-width",
+          "why": "中文语境用全角标点"
+        }
+      ],
+      "why": "中文语境用全角标点"
+    },
+    {
+      "index": 13,
+      "line": 49,
+      "rule": "hygiene.trailing-punctuation",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.trailing-punctuation",
+          "why": "行尾问号不属口径范围"
+        }
+      ],
+      "why": "行尾问号不属口径范围"
+    },
+    {
+      "index": 14,
+      "line": 53,
+      "rule": "hygiene.unclosed-tag",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.unclosed-tag",
+          "why": "标签成对闭合"
+        }
+      ],
+      "why": "标签成对闭合"
+    },
+    {
+      "index": 15,
+      "line": 57,
+      "rule": "hygiene.ass-override-residue",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.ass-override-residue",
+          "why": "无覆写块残留"
+        }
+      ],
+      "why": "无覆写块残留"
+    },
+    {
+      "index": 16,
+      "line": 61,
+      "rule": "hygiene.placeholder-residue",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.placeholder-residue",
+          "why": "单字母 {x} 属数学表达式白名单"
+        }
+      ],
+      "why": "单字母 {x} 属数学表达式白名单"
+    },
+    {
+      "index": 17,
+      "line": 65,
+      "rule": "hygiene.font-tag-residue",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.font-tag-residue",
+          "why": "无 <font> 残留"
+        }
+      ],
+      "why": "无 <font> 残留"
+    },
+    {
+      "index": 18,
+      "line": 69,
+      "rule": "hygiene.sdh-marker",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.sdh-marker",
+          "why": "整条以 ♪ 起止，属歌词语境白名单"
+        }
+      ],
+      "why": "整条以 ♪ 起止，属歌词语境白名单"
+    },
+    {
+      "index": 19,
+      "line": 73,
+      "rule": "hygiene.all-caps",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.all-caps",
+          "why": "专有名词在白名单且非全大写"
+        }
+      ],
+      "why": "专有名词在白名单且非全大写"
+    },
+    {
+      "index": 20,
+      "line": 77,
+      "rule": "hygiene.repeated-punctuation",
+      "kind": "clean",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.repeated-punctuation",
+          "why": "单字符省略号不是连续同类标点"
+        }
+      ],
+      "why": "单字符省略号不是连续同类标点"
+    },
+    {
+      "index": 21,
+      "line": 81,
+      "rule": "hygiene.cjk-latin-spacing",
+      "kind": "boundary",
+      "expectFindings": [],
+      "expectNoFindings": [
+        {
+          "ruleId": "hygiene.cjk-latin-spacing",
+          "why": "iPhone 在白名单，整词不报"
+        }
+      ],
+      "why": "iPhone 在白名单，整词不报"
+    },
+    {
+      "index": 22,
+      "line": 85,
+      "rule": "hygiene.punctuation-width",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.punctuation-width"
+      ],
+      "expectNoFindings": [],
+      "why": "英文语境出现全角逗号（反向判定）"
+    },
+    {
+      "index": 23,
+      "line": 89,
+      "rule": "hygiene.trailing-punctuation",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.trailing-punctuation"
+      ],
+      "expectNoFindings": [],
+      "why": "英文行尾 `.` 同样报"
+    },
+    {
+      "index": 24,
+      "line": 93,
+      "rule": "hygiene.unclosed-tag",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.unclosed-tag"
+      ],
+      "expectNoFindings": [],
+      "why": "交叉嵌套"
+    },
+    {
+      "index": 25,
+      "line": 97,
+      "rule": "hygiene.ass-override-residue",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.ass-override-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "`{` 未闭合"
+    },
+    {
+      "index": 26,
+      "line": 101,
+      "rule": "hygiene.placeholder-residue",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.placeholder-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "多字母命名占位符报（仅单字母 {x} 豁免）"
+    },
+    {
+      "index": 27,
+      "line": 105,
+      "rule": "hygiene.font-tag-residue",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.font-tag-residue"
+      ],
+      "expectNoFindings": [],
+      "why": "<font size=...> 同样报"
+    },
+    {
+      "index": 28,
+      "line": 109,
+      "rule": "hygiene.sdh-marker",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.sdh-marker"
+      ],
+      "expectNoFindings": [],
+      "why": "全角括号情绪标记在口径白名单词表内即报"
+    },
+    {
+      "index": 29,
+      "line": 113,
+      "rule": "hygiene.all-caps",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.all-caps"
+      ],
+      "expectNoFindings": [],
+      "why": "恰好 20 个半角大写（= 口径下限，达到即报）"
+    },
+    {
+      "index": 30,
+      "line": 117,
+      "rule": "hygiene.repeated-punctuation",
+      "kind": "boundary",
+      "expectFindings": [
+        "hygiene.repeated-punctuation"
+      ],
+      "expectNoFindings": [],
+      "why": "问号连续 3 次（= 口径下限，达到即报）"
+    }
+  ],
+  "expectFindings": [
+    {
+      "ruleId": "hygiene.cjk-latin-spacing",
+      "line": 1
+    },
+    {
+      "ruleId": "hygiene.punctuation-width",
+      "line": 5
+    },
+    {
+      "ruleId": "hygiene.trailing-punctuation",
+      "line": 9
+    },
+    {
+      "ruleId": "hygiene.unclosed-tag",
+      "line": 13
+    },
+    {
+      "ruleId": "hygiene.ass-override-residue",
+      "line": 17
+    },
+    {
+      "ruleId": "hygiene.placeholder-residue",
+      "line": 21
+    },
+    {
+      "ruleId": "hygiene.font-tag-residue",
+      "line": 25
+    },
+    {
+      "ruleId": "hygiene.sdh-marker",
+      "line": 29
+    },
+    {
+      "ruleId": "hygiene.all-caps",
+      "line": 33
+    },
+    {
+      "ruleId": "hygiene.repeated-punctuation",
+      "line": 37
+    },
+    {
+      "ruleId": "hygiene.punctuation-width",
+      "line": 85
+    },
+    {
+      "ruleId": "hygiene.trailing-punctuation",
+      "line": 89
+    },
+    {
+      "ruleId": "hygiene.unclosed-tag",
+      "line": 93
+    },
+    {
+      "ruleId": "hygiene.ass-override-residue",
+      "line": 97
+    },
+    {
+      "ruleId": "hygiene.placeholder-residue",
+      "line": 101
+    },
+    {
+      "ruleId": "hygiene.font-tag-residue",
+      "line": 105
+    },
+    {
+      "ruleId": "hygiene.sdh-marker",
+      "line": 109
+    },
+    {
+      "ruleId": "hygiene.all-caps",
+      "line": 113
+    },
+    {
+      "ruleId": "hygiene.repeated-punctuation",
+      "line": 117
+    }
+  ],
+  "expectNoFindings": [
+    {
+      "ruleId": "hygiene.cjk-latin-spacing",
+      "why": "中英之间已有空格"
+    },
+    {
+      "ruleId": "hygiene.punctuation-width",
+      "why": "中文语境用全角标点"
+    },
+    {
+      "ruleId": "hygiene.trailing-punctuation",
+      "why": "行尾问号不属口径范围"
+    },
+    {
+      "ruleId": "hygiene.unclosed-tag",
+      "why": "标签成对闭合"
+    },
+    {
+      "ruleId": "hygiene.ass-override-residue",
+      "why": "无覆写块残留"
+    },
+    {
+      "ruleId": "hygiene.placeholder-residue",
+      "why": "单字母 {x} 属数学表达式白名单"
+    },
+    {
+      "ruleId": "hygiene.font-tag-residue",
+      "why": "无 <font> 残留"
+    },
+    {
+      "ruleId": "hygiene.sdh-marker",
+      "why": "整条以 ♪ 起止，属歌词语境白名单"
+    },
+    {
+      "ruleId": "hygiene.all-caps",
+      "why": "专有名词在白名单且非全大写"
+    },
+    {
+      "ruleId": "hygiene.repeated-punctuation",
+      "why": "单字符省略号不是连续同类标点"
+    },
+    {
+      "ruleId": "hygiene.cjk-latin-spacing",
+      "why": "iPhone 在白名单，整词不报"
+    }
+  ],
+  "planted": [
+    {
+      "id": "hygiene-cjk-latin-spacing-pos",
+      "ruleId": "hygiene.cjk-latin-spacing",
+      "line": 1,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-punctuation-width-pos",
+      "ruleId": "hygiene.punctuation-width",
+      "line": 5,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-trailing-punctuation-pos",
+      "ruleId": "hygiene.trailing-punctuation",
+      "line": 9,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-unclosed-tag-pos",
+      "ruleId": "hygiene.unclosed-tag",
+      "line": 13,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-ass-override-residue-pos",
+      "ruleId": "hygiene.ass-override-residue",
+      "line": 17,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-placeholder-residue-pos",
+      "ruleId": "hygiene.placeholder-residue",
+      "line": 21,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-font-tag-residue-pos",
+      "ruleId": "hygiene.font-tag-residue",
+      "line": 25,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-sdh-marker-pos",
+      "ruleId": "hygiene.sdh-marker",
+      "line": 29,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-all-caps-pos",
+      "ruleId": "hygiene.all-caps",
+      "line": 33,
+      "diffNonEmpty": true
+    },
+    {
+      "id": "hygiene-repeated-punctuation-pos",
+      "ruleId": "hygiene.repeated-punctuation",
+      "line": 37,
+      "diffNonEmpty": true
+    }
+  ]
+}

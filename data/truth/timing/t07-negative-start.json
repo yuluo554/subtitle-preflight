@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t07-negative-start.srt",
+  "class": "T07",
+  "primaryRuleId": "timing.negative-start",
+  "note": "第 1 条起点为负",
+  "expectFindings": [
+    {
+      "ruleId": "timing.negative-start",
+      "line": 2,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t07-negative-start",
+      "cls": "T07",
+      "ruleId": "timing.negative-start",
+      "diffNonEmpty": true
+    }
+  ]
+}

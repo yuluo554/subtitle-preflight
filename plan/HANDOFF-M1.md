@@ -62,20 +62,23 @@ JSON 报告（确定性）、单文件构建、拖放/粘贴界面、浏览器 e
 - 远端**未建**：任何"CI 绿"必须写成"本地等价校验（未接远端，CI 待首推验证）"。
 - `dist/` 在 `.gitignore` 里只放行 `subtitle-preflight.html` 与 `.gitkeep`；构建产物**入仓**（发布附件即它本身）。
 
-## 五、DoD 逐项 checklist（M1）
+## 五、DoD 逐项 checklist（M1）— 已全部达成
 
-- [ ] `tools/gen-samples.mjs` 存在且 `--check` 位级一致
-- [ ] `data/samples/format/` 24 份 + `data/truth/format/` 24 份
-- [ ] `data/samples/timing/` 12 类各 ≥ 1 份 + 真值
-- [ ] `data/samples/readability/` 200 条标注 + 真值
-- [ ] `data/samples/hygiene/` 30 条 golden set + 真值
-- [ ] `tools/check-truth.mjs` 全绿（无孤儿、无 `observed`）
-- [ ] 植入器自证（每处植入 diff 非空）
-- [ ] 虚构名白名单校验在位
-- [ ] `npm test` 全绿；`node tools/build.mjs --check` 绿
-- [ ] `node tools/e2e-browser.mjs` 全绿（本机 Chrome 可用；CI 上缺浏览器时 exit 3 记为"环境缺失"不记通过）
-- [ ] `node tools/check-sprint-layout.mjs` 绿；`node tools/check-ruleset.mjs` 绿
-- [ ] `plan/HANDOFF-M2.md` 已落盘；三处状态副本已回写
+- [x] `tools/gen-samples.mjs` 存在且 `--check` 位级一致（85 文件，无孤儿）
+- [x] `data/samples/format/` 24 份 + `data/truth/format/` 24 份
+- [x] `data/samples/timing/` 12 类各 ≥ 1 份 + 1 份干净基线 + 真值
+- [x] `data/samples/readability/` 200 条标注 + 真值（4 文件：zh 60 / en 60 / ja 40 / 混排 40）
+- [x] `data/samples/hygiene/` 30 条 golden set + 真值（10 正例 + 10 已知不报 + 10 边界）
+- [x] `tools/check-truth.mjs` 全绿（无孤儿、无 `observed`/`actual`/`message`、覆盖度全绿）
+- [x] 植入器自证（每处植入 diff 非空，且干净基线在独立判定式下不报该规则）
+- [x] 虚构名白名单校验在位（禁用词表命中即抛错，并自证"命中必抛"）
+- [x] `npm test` 全绿；`node tools/build.mjs --check` 绿
+- [x] `node tools/e2e-browser.mjs` 全绿（本机 Chrome；缺浏览器时 exit 3 记"环境缺失"不记通过）
+- [x] `node tools/check-sprint-layout.mjs` 绿；`node tools/check-ruleset.mjs` 绿；`node tools/selftest-layout.mjs` 绿
+- [x] `plan/HANDOFF-M2.md` 已落盘；三处状态副本已回写
+
+> 额外兑现（不在原 DoD 但为 M2 铺路）：SRT 侧 8 份格式样本被**当前解析器 0 容差复现**；
+> `.gitattributes` 声明 `data/samples/**` 与 `data/truth/**` 为 `-text`（位级保真，实测 git blob 保留 `\r\n`）。
 
 ## 六、关键命令速查
 

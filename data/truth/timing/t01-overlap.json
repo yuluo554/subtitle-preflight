@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t01-overlap.srt",
+  "class": "T01",
+  "primaryRuleId": "timing.overlap",
+  "note": "第 2 条起点早于第 1 条结束（1500 < 2500）",
+  "expectFindings": [
+    {
+      "ruleId": "timing.overlap",
+      "line": 6,
+      "field": "startMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t01-overlap",
+      "cls": "T01",
+      "ruleId": "timing.overlap",
+      "diffNonEmpty": true
+    }
+  ]
+}

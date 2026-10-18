@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t03-negative-duration.srt",
+  "class": "T03",
+  "primaryRuleId": "timing.negative-duration",
+  "note": "第 4 条 end < start",
+  "expectFindings": [
+    {
+      "ruleId": "timing.negative-duration",
+      "line": 14,
+      "field": "endMs"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t03-negative-duration",
+      "cls": "T03",
+      "ruleId": "timing.negative-duration",
+      "diffNonEmpty": true
+    }
+  ]
+}

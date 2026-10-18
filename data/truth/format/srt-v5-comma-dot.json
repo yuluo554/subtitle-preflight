@@ -1,0 +1,80 @@
+{
+  "sample": "format/srt-v5-comma-dot.srt",
+  "format": "srt",
+  "variant": "comma-dot",
+  "encoding": "utf-8",
+  "bom": null,
+  "eol": "lf",
+  "cueCount": 4,
+  "cues": [
+    {
+      "index": 1,
+      "declaredIndex": 1,
+      "startMs": 1000,
+      "endMs": 3000,
+      "textLines": [
+        "角色甲：夜航开始了。"
+      ],
+      "textLineNumbers": [
+        3
+      ],
+      "sourceLine": 1,
+      "endLine": 3
+    },
+    {
+      "index": 2,
+      "declaredIndex": 2,
+      "startMs": 3500,
+      "endMs": 6000,
+      "textLines": [
+        "角色乙：灯塔在哪边？",
+        "风比昨天大。"
+      ],
+      "textLineNumbers": [
+        7,
+        8
+      ],
+      "sourceLine": 5,
+      "endLine": 8
+    },
+    {
+      "index": 3,
+      "declaredIndex": 3,
+      "startMs": 6500,
+      "endMs": 9000,
+      "textLines": [
+        "角色甲：跟着浪走。"
+      ],
+      "textLineNumbers": [
+        12
+      ],
+      "sourceLine": 10,
+      "endLine": 12
+    },
+    {
+      "index": 4,
+      "declaredIndex": 4,
+      "startMs": 9500,
+      "endMs": 12000,
+      "textLines": [
+        "旁白：这是示例剧的第一集。"
+      ],
+      "textLineNumbers": [
+        16
+      ],
+      "sourceLine": 14,
+      "endLine": 16
+    }
+  ],
+  "diagnostics": [],
+  "plants": [
+    {
+      "id": "srt-v5-comma-dot",
+      "variant": "comma-dot",
+      "mode": "mutation",
+      "diffNonEmpty": true,
+      "baseBytes": 281,
+      "variantBytes": 281
+    }
+  ]
+}

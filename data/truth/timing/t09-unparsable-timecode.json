@@ -1,0 +1,21 @@
+{
+  "sample": "timing/t09-unparsable-timecode.srt",
+  "class": "T09",
+  "primaryRuleId": "timing.unparsable-timecode",
+  "note": "第 2 块时间码缺毫秒段",
+  "expectFindings": [
+    {
+      "ruleId": "timing.unparsable-timecode",
+      "line": 6,
+      "field": "timecode"
+    }
+  ],
+  "planted": [
+    {
+      "id": "t09-unparsable-timecode",
+      "cls": "T09",
+      "ruleId": "timing.unparsable-timecode",
+      "diffNonEmpty": true
+    }
+  ]
+}
