@@ -149,7 +149,7 @@ node tools/check-ruleset.mjs         # 口径门：§4 ↔ ruleset 逐值一致 
 node tools/check-truth.mjs           # 真值门：样本 ↔ 真值一一对应 / 覆盖度 / 内容白名单
 node tools/gen-samples.mjs --check   # 样本与真值是否与生成器逐字节一致（含孤儿检测）
 node tools/selftest-layout.mjs       # 布局门的 7 组变异自检（在独立副本里跑）
-npm test                             # 全量测试（241 项 / 20 个文件）
+npm test                             # 全量测试（245 项 / 21 个文件）
 node tools/bench.mjs                 # 10MB / 5000 cue 性能基准（本机实测，不写死承诺）
 node tools/e2e-browser.mjs           # 浏览器 e2e：从产物文件 headless 打开跑一遍
 npm run verify                       # 三道门 + 生成器位级检查 + 测试 + 构建检查
@@ -195,7 +195,7 @@ node tools/bench.mjs --runs 5
 ## 已知限制
 
 - **CI 未跑过**：本仓库尚未建远端，`npm run verify` 是本地等价校验；浏览器 e2e 已在本机
-  headless Chrome 验过（11 项全绿）。**未接远端，CI 待首推验证。**
+  headless Chrome 验过（12 项全绿）。**未接远端，CI 待首推验证。**
 - **修复白名单是有边界的**：文本层面的缺陷（占位符、ASS 覆写块残留、全大写、SDH 标记、
   交叉嵌套标签、标点宽度、行尾句号、CJK 间距）**不可修**——修它们必然改文本，
   违反"只做可逆无损修复"的红线。这些 finding 会如实报出，但 `fixes[]` 为空。

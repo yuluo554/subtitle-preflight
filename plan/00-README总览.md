@@ -32,6 +32,7 @@
 | `tools/gen-samples.mjs` + `tools/samples/**` | 样本生成器 + 独立判定式标注器（不 import src/core） | ✅ M1 |
 | `tools/check-truth.mjs` | 真值门：一一对应 / 禁观测字段 / 覆盖度 / 内容白名单 | ✅ M1 |
 | `tools/bench.mjs` | 性能基准：10MB / 5000 cue 全流程耗时实测（结果只回填，不写死承诺） | ✅ M5 |
+| `tools/check-desensitize.mjs` | 脱敏四步扫描器（tracked / history / messages / selftest；token 运行时实算、不回显原文） | ✅ M6 |
 | `docs/技术报告.md` | 技术报告：架构 / 四类规则 / 差分对照 / 实测记录 / 非目标 | ✅ M5 |
 | `AGENTS.md` | 仓库锚点：方法论 / 布局门 / 强制布局 / K 口径 | ✅ |
 | `README.md` | 面向使用者的产品页 | ✅ |
@@ -75,7 +76,7 @@
 | 基准样本与真值 | 自建合成样本（42 份） | `data/samples/**` + `data/truth/**` | `node tools/gen-samples.mjs --check` + `node tools/check-truth.mjs` | ✅ M1（85 文件位级一致；1 对 1 无孤儿；覆盖度全绿） |
 | JSON/MD/CSV 三导出 | 报告模块 | 界面按钮，Blob 下载 | schema 校验 + byte 级双跑一致 | ✅ M5（三格式共用同一份 findings 数组；`tests/report_formats.test.mjs`） |
 | 可逆修复 + diff | 修复白名单 | `fixes[]` + 导出新文件 | 重跑违规数严格单调下降 | ✅ M5（可修样本 `after < before` 且每条规则不增加；不可修样本 `after === before` 且 `fixes[]` 为空；`tests/fix_monotonic.test.mjs`） |
-| 单文件产物 | `tools/build.mjs` 内联构建 | `dist/subtitle-preflight.html` | 零外链断言 + 断网打开 e2e | ✅ M0（`build.test` + `artifact_e2e`；M5 产物 108248 bytes） |
+| 单文件产物 | `tools/build.mjs` 内联构建 | `dist/subtitle-preflight.html` | 零外链断言 + 断网打开 e2e | ✅ M0（`build.test` + `artifact_e2e`；M6 定版 v0.1.0 产物 108369 bytes） |
 | 零网络请求 | 形态本身 | 无 CDN/字体/遥测 | 静态扫描（无 `http(s)://`、无 `fetch`/`XHR`）+ 断网 e2e | ✅ M0（静态扫描 + headless e2e 实测 0 外网请求） |
 | 性能口径（10MB/5000 cue） | 自建大样本 | 全流程计时 | 基准实测，结果以末态回填，不写死承诺 | ✅ M5（`tools/bench.mjs`，本机 5 轮中位 1242.9ms；单机单次实测，非跨机器承诺） |
 
@@ -103,7 +104,7 @@
 
 | 承诺项（plan/01 §3） | 应存在的文件路径 | 由哪个里程碑产出 | 用哪条命令核对 |
 |---|---|---|---|
-| 单文件产物 | `dist/subtitle-preflight.html` | M0 起持续构建，M5 定稿（108248 bytes） | `node tools/build.mjs --check` + `ls dist/` |
+| 单文件产物 | `dist/subtitle-preflight.html` | M0 起持续构建，M6 定版 v0.1.0（108369 bytes） | `node tools/build.mjs --check` + `ls dist/` |
 | 源码与构建 | `src/`、`tools/build.mjs` | M0 起 | `git ls-files src tools` |
 | 基准样本与真值 | `data/samples/`、`data/truth/` | M1 | `git ls-files data/samples data/truth` + `tools/check-truth.mjs` |
 | README | `README.md` | M0 起持续更新 | `git ls-files README.md` |
