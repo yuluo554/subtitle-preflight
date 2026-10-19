@@ -194,6 +194,7 @@ try {
         fixesShown: !document.getElementById("fixes-block").hidden,
         fixesItems: document.querySelectorAll("#fixes-list li").length,
         whitelistShown: !document.getElementById("whitelist-block").hidden,
+        footerVersion: (document.querySelector(".foot .ver") || {}).textContent || "",
         buttonsEnabled: buttons.map(function (id) { return document.getElementById(id).disabled === false; }),
         buttonsPresent: buttons.every(function (id) { return document.getElementById(id) !== null; })
       };
@@ -226,6 +227,11 @@ try {
     "E2E.WHITELIST_VISIBLE",
     result.whitelistShown === true,
     "白名单命中区可见=" + result.whitelistShown
+  );
+  add(
+    "E2E.VERSION_VISIBLE",
+    typeof result.footerVersion === "string" && result.footerVersion.indexOf("subtitle-preflight v") === 0,
+    "页脚版本号 = " + JSON.stringify(result.footerVersion)
   );
 
   const exportWired = await evaluate(

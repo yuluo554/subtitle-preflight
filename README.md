@@ -1,5 +1,7 @@
 # 字幕投放前体检 · subtitle-preflight
 
+**v0.1.0**
+
 把 `.srt` / `.vtt` / `.ass` 拖进一个 HTML 文件，浏览器内解析，按「时序 / 阅读速度 / 行长 / 排版卫生」四类确定性规则体检，输出**带源文件行号定位**的 JSON / Markdown / CSV 报告 + 只做**可逆修复**的字幕文件。
 
 零安装、零上传、断网可用——现有字幕工具要么是 C# 桌面巨兽（SubtitleEdit 14603★），要么是 0–3 星一次性脚本。
@@ -147,7 +149,7 @@ node tools/check-ruleset.mjs         # 口径门：§4 ↔ ruleset 逐值一致 
 node tools/check-truth.mjs           # 真值门：样本 ↔ 真值一一对应 / 覆盖度 / 内容白名单
 node tools/gen-samples.mjs --check   # 样本与真值是否与生成器逐字节一致（含孤儿检测）
 node tools/selftest-layout.mjs       # 布局门的 7 组变异自检（在独立副本里跑）
-npm test                             # 全量测试（240 项 / 20 个文件）
+npm test                             # 全量测试（241 项 / 20 个文件）
 node tools/bench.mjs                 # 10MB / 5000 cue 性能基准（本机实测，不写死承诺）
 node tools/e2e-browser.mjs           # 浏览器 e2e：从产物文件 headless 打开跑一遍
 npm run verify                       # 三道门 + 生成器位级检查 + 测试 + 构建检查

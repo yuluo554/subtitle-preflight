@@ -151,6 +151,7 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
 .note { color: var(--muted); font-size: .82rem; margin: .9rem 0 0; }
 
 .foot { padding: 1.5rem 0 3rem; color: var(--muted); font-size: .82rem; }
+.foot .ver { margin: .4rem 0 0; font-size: .78rem; color: var(--muted); }
 
 .status-ok { color: var(--ok); }
 .status-warn { color: var(--warn); }

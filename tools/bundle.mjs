@@ -36,6 +36,7 @@ export const TEMPLATE = "src/ui/index.html";
 export const STYLE = "src/ui/app.css";
 export const RULESET = "data/ruleset.v1.json";
 export const OUT = "dist/subtitle-preflight.html";
+export const PACKAGE = "package.json";
 
 export function listSourceFiles() {
   const out = [];
@@ -69,6 +70,18 @@ export function readRuleset() {
   return JSON.parse(raw);
 }
 
+/**
+ * 产品版本号（代码版本，不是规则集版本）——唯一来源是 `package.json` 的 `version`。
+ * 产物内版本号、README、tag 名、Release 名四处一致由这一处驱动（定版纪律）。
+ */
+export function readVersion() {
+  const pkg = JSON.parse(readFileSync(join(ROOT, PACKAGE), "utf8"));
+  if (typeof pkg.version !== "string" || !/^\d+\.\d+\.\d+$/.test(pkg.version)) {
+    throw new Error("package.json 的 version 必须是语义化三段式: " + JSON.stringify(pkg.version));
+  }
+  return pkg.version;
+}
+
 function rulesetModule(ruleset) {
   return (
     'SP.define("data/ruleset", [], function () {\n' +
@@ -81,6 +94,7 @@ function rulesetModule(ruleset) {
 export function render() {
   checkManifest();
   const ruleset = readRuleset();
+  const version = readVersion();
   const template = readFileSync(join(ROOT, TEMPLATE), "utf8");
   const css = readFileSync(join(ROOT, STYLE), "utf8");
 
@@ -104,12 +118,17 @@ export function render() {
 
   const cssSlot = "/*{{CSS}}*/";
   const jsSlot = "/*{{JS}}*/";
+  const versionSlot = "{{VERSION}}";
   const count = (haystack, needle) => haystack.split(needle).length - 1;
   if (count(template, cssSlot) !== 1) throw new Error("模板里 " + cssSlot + " 必须恰好出现 1 次");
   if (count(template, jsSlot) !== 1) throw new Error("模板里 " + jsSlot + " 必须恰好出现 1 次");
+  if (count(template, versionSlot) !== 1) throw new Error("模板里 " + versionSlot + " 必须恰好出现 1 次");
 
-  let html = template.replace(cssSlot, css.trimEnd()).replace(jsSlot, js.trimEnd());
-  if (html.includes(cssSlot) || html.includes(jsSlot)) {
+  let html = template
+    .replace(cssSlot, css.trimEnd())
+    .replace(jsSlot, js.trimEnd())
+    .replace(versionSlot, version);
+  if (html.includes(cssSlot) || html.includes(jsSlot) || html.includes(versionSlot)) {
     throw new Error("占位符替换后仍有残留（被替换内容里含占位符？）");
   }
 

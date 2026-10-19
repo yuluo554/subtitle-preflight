@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { ROOT, OUT, SOURCE_FILES, listSourceFiles, scanForbidden, render } from "../tools/bundle.mjs";
+import { ROOT, OUT, PACKAGE, SOURCE_FILES, listSourceFiles, readVersion, scanForbidden, render } from "../tools/bundle.mjs";
 
 const outPath = join(ROOT, OUT);
 
@@ -58,4 +58,20 @@ test("构建：产物里 UI 只经 pipeline 消费，不直接读 ruleset 判定
   const ui = readFileSync(join(ROOT, "src/ui/app.js"), "utf8");
   assert.equal(ui.includes("core/rules/"), false, "UI 不得直接依赖规则层");
   assert.equal(ui.includes("data/ruleset"), false, "UI 不得直接读口径");
+});
+
+test("构建：产品版本号单一来源 = package.json，且注入产物与 README 三处一致", () => {
+  const version = readVersion();
+  const pkg = JSON.parse(readFileSync(join(ROOT, PACKAGE), "utf8"));
+  assert.equal(version, pkg.version, "readVersion 必须读 package.json");
+  const html = readFileSync(outPath, "utf8");
+  // 产物内版本号：页脚 `v<version>`
+  assert.ok(html.includes("subtitle-preflight v" + version), "产物页脚缺版本号 v" + version);
+  assert.equal(html.includes("{{VERSION}}"), false, "版本占位符未被替换");
+  // 模板里必须恰好有一个版本占位符（改了模板忘了注入会在这里红）
+  const template = readFileSync(join(ROOT, "src/ui/index.html"), "utf8");
+  assert.equal(template.split("{{VERSION}}").length - 1, 1, "模板里 {{VERSION}} 必须恰好出现 1 次");
+  // README 里必须出现同名版本（四处一致中的第三处）
+  const readme = readFileSync(join(ROOT, "README.md"), "utf8");
+  assert.ok(readme.includes("v" + version), "README 缺版本号 v" + version);
 });
