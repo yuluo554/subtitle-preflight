@@ -65,13 +65,7 @@ function buildCriteria(t) {
       id: "personal-home-path",
       level: "HARD",
       test: (text) => t.homePatterns.some((p) => text.includes(p)),
-      why: "家目录绝对路径（含用户名）",
-    },
-    {
-      id: "bare-username",
-      level: "HARD",
-      test: (text) => t.userPatterns.some((re) => re.test(text)),
-      why: "裸用户名（词边界）",
+      why: "家目录绝对路径（含用户名）——组合路径签名，非裸词",
     },
     {
       id: "personal-email",
@@ -98,11 +92,20 @@ function buildCriteria(t) {
       why: "疑似密钥/令牌字面量",
     },
     // ---- REVIEW ----
+    // 裸用户名**只作复核项**：该取值随构建环境变（CI runner 上是 `runner`/`root`），
+    // 若也阻断会让同一仓库在不同 runner 上时红时绿（环境决定的假红）。
+    // 真正的个人标记以**组合路径签名**（家目录路径）判定。
+    {
+      id: "bare-username",
+      level: "REVIEW",
+      test: (text) => t.userPatterns.some((re) => re.test(text)),
+      why: "裸用户名（词边界；可能只是环境通用名，人工复核）",
+    },
     {
       id: "other-drive-abs-path",
       level: "REVIEW",
-      test: (text) => new RegExp(`(?<![A-Za-z0-9])[A-Za-z]:[\\\\/](?!(?:${escapeRe(t.homeDrive[0])}))`, "i").test(text) === false ? false : hasForeignAbsPath(text, t),
-      why: "非家目录盘符的绝对路径（可能只是系统目录，人工复核）",
+      test: (text) => hasForeignAbsPath(text, t),
+      why: "非本仓/本机盘符的绝对路径（可能只是系统目录，人工复核）",
     },
   ];
 }
@@ -270,12 +273,12 @@ function runSelftest() {
   for (const [id, text, expect] of cases) {
     const c = criteria.find((x) => x.id === id);
     const got = c.test(text);
-    results.push({ id, expect, got, ok: got === expect });
+    results.push({ id, level: c.level, expect, got, ok: got === expect });
   }
   process.stdout.write("脱敏扫描自检（阳性/阴性对照，合成串程序化生成）\n");
   process.stdout.write("=".repeat(64) + "\n");
   for (const r of results) {
-    process.stdout.write(`${r.ok ? "PASS" : "FAIL"}  ${r.id}  期望=${r.expect} 实得=${r.got}\n`);
+    process.stdout.write(`${r.ok ? "PASS" : "FAIL"}  ${r.level}  ${r.id}  期望=${r.expect} 实得=${r.got}\n`);
   }
   process.stdout.write("=".repeat(64) + "\n");
   const failed = results.filter((r) => !r.ok).length;
