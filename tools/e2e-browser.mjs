@@ -9,11 +9,185 @@
  * 退出码：0 通过 / 1 断言失败 / 3 环境缺失（找不到浏览器或 CDP 连不上）
  */
 import { spawn } from "node:child_process";
+import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { connect as netConnect } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { ROOT, OUT } from "./bundle.mjs";
+
+/**
+ * 最小 WebSocket 客户端（仅用 node:net + node:crypto，零第三方依赖）。
+ *
+ * 为什么需要它：Node ≥ 22 才有全局 `WebSocket`；CI 矩阵含 Node 20，
+ * 若直接用全局对象会在 Node 20 上抛 `WebSocket is not defined` → 假红。
+ * 这里自带一条 CDP 够用的实现（握手 + 文本帧 + 分片 + ping/pong），
+ * 让四矩阵在同一份代码上都能真跑 e2e。
+ */
+class MiniWebSocket {
+  constructor(url) {
+    this._url = new URL(url);
+    this._handlers = { open: [], message: [], error: [], close: [] };
+    this._buf = Buffer.alloc(0);
+    this._handshaked = false;
+    this._fragOpcode = 0;
+    this._fragParts = [];
+    this._closed = false;
+    this._start();
+  }
+
+  addEventListener(type, fn) {
+    (this._handlers[type] = this._handlers[type] || []).push(fn);
+  }
+
+  _emit(type, event) {
+    for (const fn of this._handlers[type] || []) fn(event);
+  }
+
+  _start() {
+    const key = randomBytes(16).toString("base64");
+    const path = this._url.pathname + (this._url.search || "");
+    const sock = netConnect({ host: this._url.hostname, port: Number(this._url.port || 80) });
+    this._sock = sock;
+    sock.on("connect", () => {
+      sock.write(
+        "GET " + path + " HTTP/1.1\r\n" +
+          "Host: " + this._url.host + "\r\n" +
+          "Upgrade: websocket\r\n" +
+          "Connection: Upgrade\r\n" +
+          "Sec-WebSocket-Key: " + key + "\r\n" +
+          "Sec-WebSocket-Version: 13\r\n\r\n"
+      );
+    });
+    sock.on("data", (chunk) => this._onData(chunk));
+    sock.on("error", (err) => this._emit("error", { message: err.message }));
+    sock.on("close", () => this._emit("close", {}));
+  }
+
+  _onData(chunk) {
+    this._buf = Buffer.concat([this._buf, chunk]);
+    if (!this._handshaked) {
+      const end = this._buf.indexOf("\r\n\r\n");
+      if (end === -1) return;
+      const head = this._buf.slice(0, end).toString("latin1");
+      if (!/^HTTP\/1\.1 101/.test(head)) {
+        this._emit("error", { message: "WebSocket 握手失败: " + head.split("\r\n")[0] });
+        return;
+      }
+      this._buf = this._buf.slice(end + 4);
+      this._handshaked = true;
+      this._emit("open", {});
+    }
+    this._drainFrames();
+  }
+
+  _drainFrames() {
+    while (this._buf.length >= 2) {
+      const b0 = this._buf[0];
+      const b1 = this._buf[1];
+      const fin = (b0 & 0x80) !== 0;
+      const opcode = b0 & 0x0f;
+      const masked = (b1 & 0x80) !== 0;
+      let len = b1 & 0x7f;
+      let offset = 2;
+      if (len === 126) {
+        if (this._buf.length < offset + 2) return;
+        len = this._buf.readUInt16BE(offset);
+        offset += 2;
+      } else if (len === 127) {
+        if (this._buf.length < offset + 8) return;
+        const hi = this._buf.readUInt32BE(offset);
+        const lo = this._buf.readUInt32BE(offset + 4);
+        len = hi * 4294967296 + lo;
+        offset += 8;
+      }
+      let maskKey = null;
+      if (masked) {
+        if (this._buf.length < offset + 4) return;
+        maskKey = this._buf.slice(offset, offset + 4);
+        offset += 4;
+      }
+      if (this._buf.length < offset + len) return;
+      let payload = this._buf.slice(offset, offset + len);
+      this._buf = this._buf.slice(offset + len);
+      if (maskKey) {
+        const out = Buffer.alloc(payload.length);
+        for (let i = 0; i < payload.length; i += 1) out[i] = payload[i] ^ maskKey[i % 4];
+        payload = out;
+      }
+      this._handleFrame(fin, opcode, payload);
+    }
+  }
+
+  _handleFrame(fin, opcode, payload) {
+    if (opcode === 0x8) {
+      this.close();
+      return;
+    }
+    if (opcode === 0x9) {
+      this._sendFrame(0xa, payload); // pong
+      return;
+    }
+    if (opcode === 0xa) return; // pong
+    if (opcode === 0x0) {
+      this._fragParts.push(payload);
+    } else {
+      this._fragOpcode = opcode;
+      this._fragParts = [payload];
+    }
+    if (!fin) return;
+    const data = Buffer.concat(this._fragParts);
+    this._fragParts = [];
+    this._emit("message", { data: this._fragOpcode === 0x2 ? data : data.toString("utf8") });
+  }
+
+  _sendFrame(opcode, payload) {
+    if (!this._sock || this._closed) return;
+    const len = payload.length;
+    let header;
+    if (len < 126) {
+      header = Buffer.alloc(2);
+      header[1] = 0x80 | len;
+    } else if (len < 65536) {
+      header = Buffer.alloc(4);
+      header[1] = 0x80 | 126;
+      header.writeUInt16BE(len, 2);
+    } else {
+      header = Buffer.alloc(10);
+      header[1] = 0x80 | 127;
+      header.writeUInt32BE(Math.floor(len / 4294967296), 2);
+      header.writeUInt32BE(len % 4294967296, 6);
+    }
+    header[0] = 0x80 | opcode;
+    const maskKey = randomBytes(4);
+    const masked = Buffer.alloc(len);
+    for (let i = 0; i < len; i += 1) masked[i] = payload[i] ^ maskKey[i % 4];
+    this._sock.write(Buffer.concat([header, maskKey, masked]));
+  }
+
+  send(text) {
+    this._sendFrame(0x1, Buffer.from(text, "utf8"));
+  }
+
+  close() {
+    if (this._closed) return;
+    this._closed = true;
+    try {
+      this._sendFrame(0x8, Buffer.alloc(0));
+    } catch { /* ignore */ }
+    try {
+      this._sock.end();
+    } catch { /* ignore */ }
+  }
+}
+
+/**
+ * 跨 Node 版本取 WebSocket：优先用全局（Node ≥ 22），否则用自带的 MiniWebSocket。
+ */
+function resolveWebSocket() {
+  return typeof globalThis.WebSocket === "function" ? globalThis.WebSocket : MiniWebSocket;
+}
 
 const args = process.argv.slice(2);
 let browserPath = null;
@@ -70,6 +244,28 @@ const child = spawn(
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * 清理临时 profile 目录：浏览器被 kill 后仍可能在写盘 → `rmdir` 会 ENOTEMPTY。
+ * 处置 = 先等进程真的退出，再带重试地删；删不掉只告警**不影响结论**
+ * （残留目录在系统临时区，不是产品缺陷）。
+ */
+async function cleanupProfile() {
+  // 等子进程退出（最多 ~3s），避免"还在写盘就删"
+  for (let i = 0; i < 30; i += 1) {
+    if (child.exitCode !== null || child.signalCode !== null) break;
+    await sleep(100);
+  }
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      rmSync(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+      return;
+    } catch {
+      await sleep(200);
+    }
+  }
+  process.stderr.write("WARN 临时 profile 未清理干净（不影响结论）: " + profile + "\n");
+}
+
 async function findTarget() {
   for (let i = 0; i < 60; i += 1) {
     try {
@@ -85,8 +281,8 @@ async function findTarget() {
   return null;
 }
 
-function cdp(wsUrl) {
-  const ws = new WebSocket(wsUrl);
+function cdp(wsUrl, WebSocketImpl) {
+  const ws = new WebSocketImpl(wsUrl);
   let id = 0;
   const pending = new Map();
   const ready = new Promise((resolve, reject) => {
@@ -148,11 +344,13 @@ try {
   if (!target) {
     process.stderr.write("SKIP 环境缺失：CDP 端口未就绪（浏览器可能被策略禁用）\n");
     child.kill();
-    rmSync(profile, { recursive: true, force: true });
+    await cleanupProfile();
     process.exit(3);
   }
 
-  const client = cdp(target.webSocketDebuggerUrl);
+  // Node 20 没有全局 WebSocket（22 才加）→ 用自带的 MiniWebSocket（零依赖）
+  const WebSocketImpl = resolveWebSocket();
+  const client = cdp(target.webSocketDebuggerUrl, WebSocketImpl);
   await client.ready;
   await client.send("Runtime.enable");
 
@@ -250,8 +448,7 @@ try {
   add("E2E.RUNTIME", false, "e2e 异常: " + error.message);
 } finally {
   child.kill();
-  await sleep(300);
-  rmSync(profile, { recursive: true, force: true });
+  await cleanupProfile();
 }
 
 const failed = checks.filter((c) => !c.ok);
