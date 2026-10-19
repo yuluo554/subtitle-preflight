@@ -9,10 +9,12 @@
 
 | 项 | 事实 | 证据（命令 / 结果） |
 |---|---|---|
-| 产物 | `dist/subtitle-preflight.html` | `node tools/build.mjs --check` 绿 |
-| 产物字节数 | **108248 bytes**（未压缩，LF，结尾换行） | `node tools/build.mjs` 输出行 |
-| 产物 sha256 | `67842336275ab28456d056fdcf8db078631f67d2d26ea1a8a1328c68a2e58234` | `sha256sum dist/subtitle-preflight.html`（M5 收尾时点） |
-| 测试总量 | **240 项全绿**（20 个测试文件） | `npm test` |
+| 产物 | `dist/subtitle-preflight.html`（v0.1.0 定版） | `node tools/build.mjs --check` 绿 |
+| 版本号单一来源 | `package.json` 的 `version` = **0.1.0**；注入产物页脚 `subtitle-preflight v0.1.0`；README 顶部同名 | `tests/build.test.mjs`（四处一致断言） |
+| 产物字节数 | **108369 bytes**（未压缩，LF，结尾换行） | `node tools/build.mjs` 输出行 |
+| 产物 sha256（tag 前工作树） | `97cc1995830215a240096a0bd00f0d5e7623c381c9167667d62aa38330846679` | `sha256sum dist/subtitle-preflight.html`（定版时点） |
+| 双跑逐字节 | `node tools/build.mjs` 连跑两次 `cmp` 一致 | `cmp` 输出为空 |
+| 测试总量 | **245 项全绿**（21 个测试文件） | `npm test` |
 | 三格式样本 | 24 份（3 格式 × 8 变体），cue 边界 / 行号映射 / 诊断码 **0 容差** | `tests/samples_generator.test.mjs` |
 | 时序 T01–T12 | 13 份真值 **0 容差**，无 pending | `tests/samples_generator.test.mjs` |
 | 可读性 R01–R07 | 200 条标注 **0 容差** + 50 项边界单测 | `tests/samples_generator.test.mjs` + `readability_*.test.mjs` |
@@ -21,7 +23,14 @@
 | 报告三格式 | JSON / Markdown / CSV 同源；CSV 按 RFC 4180 | `tests/report_formats.test.mjs` |
 | 样本与真值 | 85 文件位级一致、无孤儿；42 样本 ↔ 42 真值 | `node tools/gen-samples.mjs --check` + `node tools/check-truth.mjs` |
 | 门 | 布局 / 口径 / 真值 / 变异自检（7 组）全绿 | `check-sprint-layout` / `check-ruleset` / `check-truth` / `selftest-layout` |
-| 浏览器 e2e | **11 项全绿**（从产物文件 headless 打开） | `node tools/e2e-browser.mjs` |
+| 浏览器 e2e | **12 项全绿**（从产物文件 headless 打开） | `node tools/e2e-browser.mjs` |
+| 脱敏扫描（tracked） | **HARD 0 / REVIEW 0**（扫描面 171 项；不含 3 份 GBK 样本，按 `git grep -I` 口径跳过） | `node tools/check-desensitize.mjs` |
+| 脱敏扫描（history） | **HARD 0 / REVIEW 0**（扫描面 736 项 blob） | `node tools/check-desensitize.mjs --history` |
+| 脱敏扫描（messages） | **HARD 0 / REVIEW 0**（作者/提交者邮箱 + tag tagger 邮箱，7 项） | `node tools/check-desensitize.mjs --messages` |
+| 脱敏扫描器自检 | 阳性/阴性对照 9 项全绿（合成串程序化生成，无字面敏感值） | `node tools/check-desensitize.mjs --selftest` |
+| 提交元数据邮箱 | 全部为 GitHub noreply（`*+<user>@users.noreply.github.com`） | `git log --format="%ae %ce" --all \| sort -u` |
+| 二进制样本字节面 | 172 份 tracked 文件按原始字节扫（含 3 份非 UTF-8 GBK 样本）：0 命中 | 一次性脚本（见 §二 复现口径） |
+| CI workflow 本地解析 | 1 job / 11 steps；4 矩阵（ubuntu/windows × node 20/24） | `py -3.12` + PyYAML 解析通过 |
 | **性能（10MB / 5000 cue）** | 样本 10 558 893 bytes / 5000 cue；全流程（解码 → 解析 → 四域规则 → 报告三格式 → 修复）**min 1102.4ms / 中位 1242.9ms / max 1400.7ms**（5 轮，另含 1 轮预热不计入）；对照 `perf.targetWallMs=2000` **达标** | `node tools/gen-samples.mjs --perf` + `node tools/bench.mjs --runs 5` |
 | 性能环境 | Node `v24.15.0`，Windows + Git Bash | `node --version` |
 | 性能纪律 | **单机单次实测，非跨机器承诺**；`bench.mjs` 只测量、不判达标 | `tests/bench_contract.test.mjs` |
