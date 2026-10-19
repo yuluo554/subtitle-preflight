@@ -52,8 +52,8 @@
 | 附件 sha256（正文） | html `97cc1995830215a240096a0bd00f0d5e7623c381c9167667d62aa38330846679`；tarball `0f5c9c31c6133e96670b305a0227db3affd303e5ac0f8a12cae4e4eaf162273a`（GitHub asset digest 亦为同值） | `sha256sum` + `gh release view --json assets -q .digest` |
 | 附件与 tag 树同源 | 从 `v0.1.0` 重新 `git archive … \| gzip -9n` → 与下载件 `cmp` 一致；解包源码树跑 `node tools/build.mjs` 产物 == 附件 html | 两条 `cmp` 均 `CMP_OK` |
 | 附件口径 | **构建产物本身 + 手工确定性源码包**（非 GitHub 自动 Source code 包——后者本地复算不出 sha256） | 见上两行 |
-| CI 首推（push 数 = run 数） | **3 次 push ↔ 3 条 run**（按 push 事件计）：`5b92dc8`（首推 main，failure）、`20ab396`（修 CI 假红，failure）、`6370639`（修 e2e Node20，**success**）；另 tag push `v0.1.0` 触发 **1 条 tag run，success** | `gh run list --json event,headBranch,headSha,conclusion` 逐条配对 |
-| CI 四矩阵 | `6370639` 与 tag run 两次均 **ubuntu/windows × node 20/24 四矩阵全绿** | `gh run view <id> --json jobs` |
+| CI 首推（push 数 = run 数） | **不变式：每次 push 事件 ↔ 一条 run**（对账口径 = push 事件数，非提交数；同 sha 的 branch run 与 tag run 两条合法，都须绿）。按 sha 逐条配对（**sha 与结论不随后续文档提交漂移**）：`5b92dc8` branch=failure、`20ab396` branch=failure、`6370639` branch=success、`6370639` tag=success、`115486b` branch=success。截至本行写下时两侧均 5 条 | `gh run list --json event,headBranch,headSha,conclusion` 逐条配对（event/headBranch/headSha 一一对应） |
+| CI 四矩阵 | `6370639`（branch）、`6370639`（tag）、`115486b` 三次均 **ubuntu/windows × node 20/24 四矩阵全绿** | `gh run view <id> --json jobs` |
 | 浏览器 e2e（CI 内） | **四矩阵上真实跑通**（非"环境缺失"）：各 job 均 `结论: 全绿`，含 `E2E.VERSION_VISIBLE` | CI 日志逐 job 复核 |
 | 首推暴露并已修的两处 CI 假红 | ① 脱敏扫描器把环境取值 `runner` 判 HARD（跨 runner 时红时绿）→ 降级 REVIEW；② Node 20 无全局 `WebSocket` + profile 清理 `ENOTEMPTY` → e2e 自带零依赖 MiniWebSocket + 重试清理 | `20ab396`、`6370639` 两个提交；两次首跑失败日志 |
 | 干净 clone 复核 | 从 GitHub 全新 `git clone` 到中立目录：布局/口径/真值/变异自检/生成器 **全绿**；`npm test` **246 项全绿**；`build --check` 绿；浏览器 e2e **全绿** | 逐条命令实测 |
