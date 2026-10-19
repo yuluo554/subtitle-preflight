@@ -6,12 +6,12 @@
 
 零安装、零上传、断网可用——现有字幕工具要么是 C# 桌面巨兽（SubtitleEdit 14603★），要么是 0–3 星一次性脚本。
 
-> **当前状态**：M0 骨架 + M1 基准数据 + M2 解析层 + M3 时序 + M4 可读性 + M5 卫生与报告已落地。
-> 四类规则全部实现：时序 T01–T12（含 fps 漂移拟合）、可读性 R01–R07、**卫生 S01–S10**；
-> 三格式报告 JSON / Markdown / CSV 同源，**可逆修复**导出修复后字幕；
+> **当前状态**：M0–M6 全部落地。四类规则全部实现：时序 T01–T12（含 fps 漂移拟合）、
+> 可读性 R01–R07、**卫生 S01–S10**；三格式报告 JSON / Markdown / CSV 同源，**可逆修复**导出修复后字幕；
 > 24 份格式样本 / 12 类时序样本 / 200 条可读性标注 / 30 条卫生 golden set 与全套真值端到端 **0 容差**。
 > 10MB / 5000 cue 性能已**实测回填**（本机中位 1.24s，见下方「性能」）。
-> 仅剩 M6 发布（tag + Release + CI 首推）未做——详见下方「已知限制」。
+> **已发布 v0.1.0**：tag + GitHub Release（附产物 + sha256）+ CI 四矩阵全绿（详见
+> [Releases](https://github.com/yuluo554/subtitle-preflight/releases/tag/v0.1.0)）。
 
 ## 里程碑状态
 
@@ -23,7 +23,7 @@
 | M3 | 时序 | ✅ |
 | M4 | 可读性 | ✅ |
 | M5 | 卫生与报告 | ✅ |
-| M6 | 发布 | ⬜ |
+| M6 | 发布 | ✅ |
 
 ## 快速开始
 
@@ -149,7 +149,7 @@ node tools/check-ruleset.mjs         # 口径门：§4 ↔ ruleset 逐值一致 
 node tools/check-truth.mjs           # 真值门：样本 ↔ 真值一一对应 / 覆盖度 / 内容白名单
 node tools/gen-samples.mjs --check   # 样本与真值是否与生成器逐字节一致（含孤儿检测）
 node tools/selftest-layout.mjs       # 布局门的 7 组变异自检（在独立副本里跑）
-npm test                             # 全量测试（245 项 / 21 个文件）
+npm test                             # 全量测试（246 项 / 21 个文件）
 node tools/bench.mjs                 # 10MB / 5000 cue 性能基准（本机实测，不写死承诺）
 node tools/e2e-browser.mjs           # 浏览器 e2e：从产物文件 headless 打开跑一遍
 npm run verify                       # 三道门 + 生成器位级检查 + 测试 + 构建检查
@@ -194,8 +194,8 @@ node tools/bench.mjs --runs 5
 
 ## 已知限制
 
-- **CI 未跑过**：本仓库尚未建远端，`npm run verify` 是本地等价校验；浏览器 e2e 已在本机
-  headless Chrome 验过（12 项全绿）。**未接远端，CI 待首推验证。**
+- **CI 四矩阵全绿**：ubuntu / windows × node 20 / 24 均通过，浏览器 e2e 在 runner 上真实跑通
+  （非"环境缺失"）；v0.1.0 的 tag 与 main 各触发一条 run，均绿。
 - **修复白名单是有边界的**：文本层面的缺陷（占位符、ASS 覆写块残留、全大写、SDH 标记、
   交叉嵌套标签、标点宽度、行尾句号、CJK 间距）**不可修**——修它们必然改文本，
   违反"只做可逆无损修复"的红线。这些 finding 会如实报出，但 `fixes[]` 为空。

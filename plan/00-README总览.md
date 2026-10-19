@@ -6,7 +6,7 @@
 - 交付形态（唯一）：**单文件 HTML 本地 Web 应用**（零安装、零后端、零 CDN、断网可用，双击打开即用）
 - 定位宣言："把 `.srt/.vtt/.ass` 拖进一个 HTML 文件，浏览器内解析，按「时序 / 阅读速度 / 行长 / 排版卫生」四类确定性规则体检，输出带源文件行号定位的 JSON/Markdown 报告 + 只做可逆修复的字幕文件。零安装、零上传、断网可用——现有字幕工具要么是 C# 桌面巨兽（SubtitleEdit 14603★），要么是 0–3 星一次性脚本。"
 - 基准日：**2026-10-17**；GitHub 检索实测窗口 **2026-10-18 10:33–10:45 UTC**（跨日不足 1 天，`data/README.md` 已如实标注）
-- 当前状态：**M5 已完成**（10 类卫生规则 precision 100% / recall 100% + MD/CSV 与 JSON 同源 + 可逆修复单调下降 + 10MB/5000 cue 实测回填），下一棒 **M6 发布**
+- 当前状态：**M6 已完成**（v0.1.0 已发布：tag + GitHub Release 附产物 + CI 四矩阵全绿；四类规则全部实现，245→246 项测试全绿）
 
 ## 一、文档索引表
 
@@ -24,7 +24,7 @@
 | `plan/HANDOFF-M3.md` | 第 3 棒交接单（六节齐） | ✅ |
 | `plan/HANDOFF-M4.md` | 第 4 棒交接单（六节齐） | ✅ |
 | `plan/HANDOFF-M5.md` | 第 5 棒交接单（六节齐） | ✅ |
-| `plan/HANDOFF-M6.md` | 下一棒交接单（六节齐） | ✅ |
+| `plan/HANDOFF-M6.md` | 第 6 棒交接单（六节齐） | ✅ |
 | `data/README.md` | 依据查证三态 + 数据源可获取性 + 合成数据纪律 + **数值口径单一真相源（§4）** | ✅ v2 |
 | `data/ruleset.v1.json` | §4 的机器可读镜像（由 `check-ruleset` 强制一致） | ✅ |
 | `data/samples/**` + `data/truth/**` | 42 份样本 + 42 份真值 + `coverage.json`（生成器派生） | ✅ M1/M3（T11 样本 M3 扩至 24 条 cue） |
@@ -38,7 +38,7 @@
 | `README.md` | 面向使用者的产品页 | ✅ |
 | `LICENSE` | MIT | ✅ |
 | `.gitignore` / `.gitattributes` | 构建产物不入仓；源码与产物统一 LF | ✅ v2 |
-| `plan/RELEASE-M6.md` | 发布留档（tag 时点事实 / 发布后追加事实分栏） | ⬜ 待 M6 |
+| `plan/RELEASE-M6.md` | 发布留档（tag 时点事实 / 发布后追加事实分栏） | ✅ M6 |
 
 ## 二、决策记录表
 
@@ -124,7 +124,7 @@
 | M3 时序 | 12 类时序规则 + fps 漂移拟合 | 检出率 100%/误报 0；漂移复原 < 1 帧；双跑参数完全一致 | ✅ |
 | M4 可读性 | CPS / 行长 / 行数 / 时长 / 重复文本 | 200 条标注 100% 一致；边界值单测覆盖；定点整数判定 | ✅ |
 | M5 卫生与报告 | 10 类卫生规则 + 三格式报告 + 可逆修复 + 单文件构建 | precision 100%/recall ≥ 90%；报告 byte 级双跑一致 + schema 通过；修复后违规数单调下降；单文件零外链、断网可跑；技术报告与 README 落盘 | ✅ |
-| M6 发布 | GitHub 公开仓库发布 | **① `git tag v0.1.0`；② GitHub Release 附产物**（`dist/subtitle-preflight.html` + 确定性源码包，本地留副本并记 sha256）；**③ 发布留档 `plan/RELEASE-M6.md`**（tag 时点事实 / 发布后追加事实分栏）；④ 布局门与口径门在 tag 树内全绿；⑤ CI 干净 clone 直跑通过 | ⬜ |
+| M6 发布 | GitHub 公开仓库发布 | **① `git tag v0.1.0`；② GitHub Release 附产物**（`dist/subtitle-preflight.html` + 确定性源码包，本地留副本并记 sha256）；**③ 发布留档 `plan/RELEASE-M6.md`**（tag 时点事实 / 发布后追加事实分栏）；④ 布局门与口径门在 tag 树内全绿；⑤ CI 干净 clone 直跑通过 | ✅ |
 
 > DoD 口径写死为 **A) Release 附产物**（≥1 个手工上传附件）。里程碑表的 DoD 列**只能加不能减**；任何裁剪必须在 §二 决策记录留一行理由。
 
@@ -136,18 +136,20 @@
 
 > 任一行有空格 → 该形态视为未交付。
 
-## 八、交接语（下一棒 = sprint M6）
+## 八、交接语（收尾 · M6 已完成）
 
 题目已定稿于 `plan/01-题目文档.md`，口径单点定义在 `data/README.md` §4，架构与模块边界见 `plan/02`/`plan/03`。
-M0 骨架、M1 基准与真值、M2 解析层、M3 时序、M4 可读性已落地。
-**M5 把卫生与报告做齐**：10 类卫生规则（30 条 golden set precision 100% / recall 100%）、
-Markdown / CSV 与 JSON 同源、可逆修复（违规数单调下降）、10MB / 5000 cue 性能实测回填、
-`README.md` 与 `docs/技术报告.md` 落盘。四类规则至此**全部实现**，`capabilities` 全为 `implemented`。
-**下一棒从 M6 发布开工**，完整交接见 `plan/HANDOFF-M6.md`。
+M0 骨架、M1 基准与真值、M2 解析层、M3 时序、M4 可读性、M5 卫生与报告已落地。
+**M6 发布已收尾**：annotated tag `v0.1.0`（对象 `17e3d78…`，本地==远端）+ GitHub Release 附
+`subtitle-preflight.html` 与确定性源码包（`state=uploaded`，sha256 进正文）+ CI 四矩阵全绿
+（push 数=run 数 3↔3，另 tag run 1 条）+ 发布留档 `plan/RELEASE-M6.md`（两栏 + 覆盖对账表）。
+四类规则全部实现，`capabilities` 全为 `implemented`。
 
-交下去的四件必须逐行兑现：
+交付四件已逐行兑现：
 
-1. **招牌动词表（§四）**：每行都要有交付态入口与断言，M5 已逐行填绿（含 Markdown/CSV/可逆修复/性能实测）。
-2. **提交材料实物表（§五）**：每项都有路径与产出里程碑；M6 用文件存在性核对。
-3. **形态自查表（§七）**：唯一形态为单文件 HTML，e2e 必须从**产物文件**打开跑通，不能只测模块函数。
-4. **发布三件套**：M6 必须含 **tag + Release 附产物（本地留副本 + sha256）+ `plan/RELEASE-M6.md` 留档**，收尾跑布局门与口径门。
+1. **招牌动词表（§四）**：每行都有交付态入口与断言（含 Markdown/CSV/可逆修复/性能实测）。
+2. **提交材料实物表（§五）**：每项都有路径与产出里程碑；`plan/RELEASE-M6.md` 已在 tag 树内。
+3. **形态自查表（§七）**：唯一形态为单文件 HTML，e2e 从**产物文件**打开跑通（本地 + CI 四矩阵各 12 项全绿）。
+4. **发布三件套**：tag + Release 附产物（sha256 进 Release 正文）+ `plan/RELEASE-M6.md` 留档齐备；布局门与口径门全绿。
+
+> 后续若继续推进（V2 等），从 `plan/05` §四「已知未验证项」与 `plan/06` 缺口表读起；本轮无下一棒交接单（M6 为收尾里程碑）。
