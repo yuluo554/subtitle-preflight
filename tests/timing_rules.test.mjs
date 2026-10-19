@@ -114,9 +114,62 @@ test("T12 timecode-precision：从解析诊断转成 finding", () => {
   assert.equal(precision[0].line, 2);
 });
 
-test("T11 fps-drift 未实现时进入 skipped，不静默返回空", () => {
+test("T11 fps-drift：未声明帧率时进入 skipped，不静默返回空", () => {
   const { skipped } = timing.run([cue(0, 1000)], {});
-  assert.ok(skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "not_implemented"));
+  assert.ok(skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "media_fps_unknown"));
+});
+
+test("T11 fps-drift：干净对不足时进入 skipped（不报漂移）", () => {
+  const cues = [cue(0, 1000), cue(1100, 2100), cue(2200, 3200)]; // 3 条 < drift.minSamples(20)
+  const { findings, skipped } = timing.run(cues, { declaredFps: 25 });
+  assert.ok(!rulesOf(findings).includes("timing.fps-drift"));
+  assert.ok(skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "samples_below_min"));
+});
+
+/** 声明帧栅格上的 24 条 cue（起点 = 整数帧号 × 帧长），可选等比拉伸。 */
+function driftCues(declaredFps, scale) {
+  const frameMs = 1000 / declaredFps;
+  const steps = [7, 8, 6, 9, 7, 8];
+  const k = scale === undefined ? 1 : scale;
+  let frame = 0;
+  const out = [];
+  for (let i = 0; i < 24; i += 1) {
+    out.push(
+      cue(
+        Math.round(frame * frameMs * k),
+        Math.round((frame + 4) * frameMs * k),
+        ["第 " + (i + 1) + " 句"]
+      )
+    );
+    frame += steps[i % 6];
+  }
+  return out;
+}
+
+test("T11 fps-drift：声明帧率 + 干净对够 + 整段等比漂移则报红（line=1, field=fit）", () => {
+  const scale = 25 / 23.976;
+  const cues = driftCues(23.976, scale);
+  const { findings, skipped, driftFit } = timing.run(cues, { declaredFps: 23.976 });
+  const driftFindings = findings.filter((f) => f.ruleId === "timing.fps-drift");
+  assert.equal(driftFindings.length, 1);
+  assert.equal(driftFindings[0].line, 1);
+  assert.equal(driftFindings[0].field, "fit");
+  assert.ok(!skipped.some((s) => s.ruleId === "timing.fps-drift"), "报红时不应进 skipped");
+  assert.ok(Math.abs(driftFit.scale - scale) < 0.001, "复原 scale 误差应 < 0.001");
+  assert.equal(driftFit.offsetMs, 0);
+});
+
+test("T11 fps-drift 反例：干净对够且落在正确帧栅格上不报", () => {
+  const cues = driftCues(23.976, 1);
+  const { findings, skipped } = timing.run(cues, { declaredFps: 23.976 });
+  assert.ok(!rulesOf(findings).includes("timing.fps-drift"));
+  assert.ok(skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "drift_within_tolerance"));
+});
+
+test("T11 fps-drift 反例：容差内漂移（跨度 < residualMaxMs）不报", () => {
+  const cues = driftCues(23.976, 1.0005);
+  const { findings } = timing.run(cues, { declaredFps: 23.976 });
+  assert.ok(!rulesOf(findings).includes("timing.fps-drift"));
 });
 
 test("finding 的 line 指向时间码所在行", () => {

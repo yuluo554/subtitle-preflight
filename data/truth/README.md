@@ -62,7 +62,7 @@ data/truth/coverage.json      覆盖度矩阵（口径键 → 正例/反例样�
 | `timing.unparsable-timecode` | T09 | 已实现 | 时间码无法解析，走回退路径 |
 | `timing.file-order-mismatch` | T10 | 已实现 | 文件顺序 ≠ 时间顺序（整段只报一条） |
 | `timing.timecode-precision` | T12 | 已实现 | 亚毫秒 / 小时位 > 2 位 / 毫秒位 ≠ 3 位 |
-| `timing.fps-drift` | T11 | **待 M3** | offset+scale 网格拟合残差超限；本轮进 `skipped[]` |
+| `timing.fps-drift` | T11 | **已实现（M3）** | 帧栅格拟合的残余漂移 `|scale−1| × 跨度` 超限；需声明帧率 + 干净对 ≥ `drift.minSamples` |
 
 ### 3.2 可读性（`readability.*`）
 
@@ -125,7 +125,7 @@ node tools/check-truth.mjs            # 真值门：一一对应 / 禁字段 / �
 | 项 | 当前状态 | 何时可验 |
 |---|---|---|
 | VTT / ASS 真值 | ✅ 已达成（M2）：解析器已实装，16 份样本 0 容差 | 已验（M2） |
-| `timing.fps-drift` 正例 | 样本已落库，规则未实现（M3） | M3 |
-| 可读性 / 卫生真值 | 标注与独立判定式一致，规则未实现（M4/M5） | M4 / M5 |
+| `timing.fps-drift` 正例 | ✅ 已达成（M3）：`t11-fps-drift.srt`（24 条 cue，落在声明帧栅格）端到端产出 `timing.fps-drift@1:fit`；复原 scale 误差 < 1 帧 | 已验（M3） |
+| 可读性 / 卫生真值 | 可读性 ✅ 已达成（M4）：7 类端到端 200 条标注 0 容差；卫生规则未实现（M5） | M5 |
 | GBK 变体再生成 | 依赖宿主 `TextDecoder('gbk')`（Node 需含完整 ICU）；`--check` 会在缺 ICU 时报错而非静默 | 同左 |
 | 10MB / 5000 cue 实测耗时 | 样本可生成，**耗时未测**（M5 基准回填） | M5 |

@@ -55,18 +55,43 @@ test("产物 e2e：产物里的 ruleset 与仓库镜像逐值一致", () => {
   assert.equal(JSON.stringify(injected), JSON.stringify(mirror));
 });
 
-test("产物 e2e：未实现能力在产物里也是数据（不是文档）", () => {
+test("产物 e2e：能力声明在产物里也是数据（不是文档）", () => {
   const SP = loadArtifact();
   const caps = SP.get("core/pipeline").CAPABILITIES;
-  // 三种解析器已在 M2 实现
+  // M5 后全部能力均已实现；声明值只能是两种枚举之一
   assert.equal(caps.parsers.srt, "implemented");
   assert.equal(caps.parsers.vtt, "implemented");
   assert.equal(caps.parsers.ass, "implemented");
-  assert.equal(caps.rules.readability, "not_implemented");
-  assert.equal(caps.rules.hygiene, "not_implemented");
-  assert.equal(caps.exports.markdown, "not_implemented");
-  assert.equal(caps.exports.csv, "not_implemented");
-  assert.equal(caps.fixes, "not_implemented");
+  assert.equal(caps.rules.timing, "implemented");
+  assert.equal(caps.rules.readability, "implemented");
+  assert.equal(caps.rules.hygiene, "implemented");
+  assert.equal(caps.exports.json, "implemented");
+  assert.equal(caps.exports.markdown, "implemented");
+  assert.equal(caps.exports.csv, "implemented");
+  assert.equal(caps.fixes, "implemented");
+  assert.equal(caps.driftFit, "implemented");
+});
+
+test("产物 e2e：产物里能真的跑出卫生 finding 与修复结果（不是只改了声明）", () => {
+  const SP = loadArtifact();
+  const pipeline = SP.get("core/pipeline");
+  const text = [
+    "1",
+    "00:00:01,000 --> 00:00:03,000",
+    "用Python写的脚本",
+    "",
+    "2",
+    "00:00:02,000 --> 00:00:04,000",
+    "等一下！！！",
+    "",
+  ].join("\n");
+  const result = pipeline.run([{ name: "a.srt", bytes: new TextEncoder().encode(text) }], {}).results[0];
+  const rules = result.report.findings.map((f) => f.ruleId);
+  assert.ok(rules.includes("hygiene.cjk-latin-spacing"), "产物里没跑出卫生规则: " + JSON.stringify(rules));
+  assert.ok(rules.includes("hygiene.repeated-punctuation"));
+  assert.ok(result.report.fixes.length >= 1, "产物里没跑出修复记录");
+  assert.ok(result.markdown.includes("字幕投放前体检报告"));
+  assert.ok(result.csv.split("\r\n")[0].startsWith("ruleId,severity,line,field,expected,actual,message"));
 });
 
 test("产物 e2e：VTT / ASS 在产物里能真的解析出 cue（不是只改了声明）", () => {

@@ -161,7 +161,7 @@ test("覆盖率矩阵：与真值同源（写在 data/truth/coverage.json，由�
   assert.equal(matrix.counts.formatSamples, 24);
   const drift = matrix.domains.timing.find((e) => e.ruleId === "timing.fps-drift");
   assert.deepEqual(drift.positiveSamples, ["timing/t11-fps-drift"], "fps-drift 的正例样本是 t11");
-  assert.ok(String(drift.notes).includes("M3"), "待实现规则必须在矩阵里写明 M3");
+  assert.ok(String(drift.notes).includes("M3"), "fps-drift 的实现里程碑必须在矩阵里写明");
   // 目录名与真值目录一致（防止矩阵指向不存在的样本）
   const dirOf = (rel) => dirname(rel);
   for (const entry of matrix.domains.timing) {

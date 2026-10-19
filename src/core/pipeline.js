@@ -5,23 +5,35 @@
  *  - 只串 L1，不做判定、不渲染。
  *  - 未实现的规则/解析器必须以 `skipped[]` + `capabilities` 形式进入产物。
  *  - 多文件按**文件名 Unicode 码点序**处理，保证确定性。
+ *  - 修复在同一份 cue 模型上做（`core/fix`），修复后的文本与报告一起返回，
+ *    界面只负责下载；重跑体检即得到"修复后违规数"（单调性由测试断言）。
  */
 SP.define(
   "core/pipeline",
-  ["core/decode", "core/parse/index", "core/rules/timing", "core/report", "core/sha256", "core/ruleset"],
-  function (decode, parser, timing, report, sha256, ruleset) {
+  [
+    "core/decode",
+    "core/parse/index",
+    "core/rules/timing",
+    "core/rules/readability",
+    "core/rules/hygiene",
+    "core/report",
+    "core/fix",
+    "core/sha256",
+    "core/ruleset",
+  ],
+  function (decode, parser, timing, readability, hygiene, report, fix, sha256, ruleset) {
     "use strict";
 
     const CAPABILITIES = {
       parsers: { srt: "implemented", vtt: "implemented", ass: "implemented" },
       rules: {
-        timing: "partial",
-        readability: "not_implemented",
-        hygiene: "not_implemented",
+        timing: "implemented",
+        readability: "implemented",
+        hygiene: "implemented",
       },
-      exports: { json: "implemented", markdown: "not_implemented", csv: "not_implemented" },
-      fixes: "not_implemented",
-      driftFit: "not_implemented",
+      exports: { json: "implemented", markdown: "implemented", csv: "implemented" },
+      fixes: "implemented",
+      driftFit: "implemented",
     };
 
     function compareName(a, b) {
@@ -45,26 +57,30 @@ SP.define(
 
       const timingResult = timing.run(parsed.cues, {
         mediaDurationMs: options.mediaDurationMs,
+        declaredFps: options.declaredFps,
         diagnostics: parsed.diagnostics,
       });
 
-      const findings = parsed.findings.concat(timingResult.findings);
-      const skipped = parsed.skipped.concat(timingResult.skipped);
+      const readabilityResult = readability.run(parsed.cues);
+      const hygieneResult = hygiene.run(parsed.cues);
 
-      // 未实现的规则域：显式声明，不静默
-      skipped.push({ kind: "ruleDomain", domain: "readability", reason: "not_implemented" });
-      skipped.push({ kind: "ruleDomain", domain: "hygiene", reason: "not_implemented" });
-      skipped.push({ kind: "export", format: "markdown", reason: "not_implemented" });
-      skipped.push({ kind: "export", format: "csv", reason: "not_implemented" });
-      skipped.push({ kind: "fix", reason: "not_implemented" });
+      const findings = parsed.findings
+        .concat(timingResult.findings)
+        .concat(readabilityResult.findings)
+        .concat(hygieneResult.findings);
+      const skipped = parsed.skipped.concat(timingResult.skipped).concat(readabilityResult.skipped);
+
+      const fixed = fix.apply(decoded.text, parsed.cues, {});
+      skipped.push({ kind: "fix", reason: fixed.fixes.length ? "applied" : "no_fixable_finding" });
 
       const built = report.build({
         inputSha256: sha256.sha256Hex(file.bytes),
         findings,
-        fixes: [],
+        fixes: fixed.fixes,
         skipped,
         capabilities: CAPABILITIES,
         diagnostics: decoded.diagnostics.concat(parsed.diagnostics),
+        whitelist: hygieneResult.whitelist,
       });
 
       return {
@@ -82,12 +98,16 @@ SP.define(
         cues: parsed.cues,
         report: built,
         json: report.toJson(built),
+        markdown: report.toMarkdown(built),
+        csv: report.toCsv(built),
+        fixedText: fixed.text,
+        driftFit: timingResult.driftFit || null,
       };
     }
 
     /**
      * @param {Array<{name:string, bytes:Uint8Array}>} files
-     * @param {{mediaDurationMs?:number}} options
+     * @param {{mediaDurationMs?:number, declaredFps?:number}} options
      */
     function run(files, options) {
       const opts = options || {};

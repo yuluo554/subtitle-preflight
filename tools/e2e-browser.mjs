@@ -132,7 +132,7 @@ async function evaluate(client, expression) {
 const SAMPLE = [
   "1",
   "00:00:01,000 --> 00:00:03,000",
-  "第一行",
+  "用 iPhone 拍的",
   "",
   "2",
   "00:00:02,000 --> 00:00:04,000",
@@ -181,6 +181,7 @@ try {
       const rows = document.querySelectorAll("#finding-rows tr");
       const ruleCells = Array.prototype.map.call(rows, function (tr) { return tr.children[2].textContent.trim(); });
       const fileRows = document.querySelectorAll("#file-rows tr");
+      const buttons = ["export-json", "export-merged", "export-markdown", "export-csv", "export-fixed"];
       return {
         status: document.getElementById("status").textContent,
         fileRows: fileRows.length,
@@ -188,7 +189,13 @@ try {
         rules: ruleCells,
         countText: document.getElementById("finding-count").textContent,
         skippedShown: !document.getElementById("skipped-block").hidden,
-        skippedItems: document.querySelectorAll("#skipped-list li").length
+        skippedItems: document.querySelectorAll("#skipped-list li").length,
+        capabilityItems: document.querySelectorAll("#capabilities-list li").length,
+        fixesShown: !document.getElementById("fixes-block").hidden,
+        fixesItems: document.querySelectorAll("#fixes-list li").length,
+        whitelistShown: !document.getElementById("whitelist-block").hidden,
+        buttonsEnabled: buttons.map(function (id) { return document.getElementById(id).disabled === false; }),
+        buttonsPresent: buttons.every(function (id) { return document.getElementById(id) !== null; })
       };
     })()`
   );
@@ -205,12 +212,32 @@ try {
     result.skippedShown === true && result.skippedItems >= 3,
     "未执行检查区可见=" + result.skippedShown + "，条目=" + result.skippedItems
   );
+  add(
+    "E2E.CAPABILITIES_VISIBLE",
+    result.capabilityItems >= 11,
+    "能力声明条目 = " + result.capabilityItems + "（应逐条摊开解析器/规则/导出/修复/漂移）"
+  );
+  add(
+    "E2E.FIXES_VISIBLE",
+    result.fixesShown === true && result.fixesItems >= 1,
+    "修复区可见=" + result.fixesShown + "，条目=" + result.fixesItems
+  );
+  add(
+    "E2E.WHITELIST_VISIBLE",
+    result.whitelistShown === true,
+    "白名单命中区可见=" + result.whitelistShown
+  );
 
   const exportWired = await evaluate(
     client,
     'document.getElementById("export-json").disabled === false && typeof URL.createObjectURL === "function"'
   );
   add("E2E.EXPORT_WIRED", exportWired === true, "导出按钮可用=" + exportWired);
+  add(
+    "E2E.EXPORT_BUTTONS_ENABLED",
+    result.buttonsPresent === true && result.buttonsEnabled.every(Boolean),
+    "MD/CSV/修复按钮全部可用=" + JSON.stringify(result.buttonsEnabled)
+  );
 
   client.close();
 } catch (error) {

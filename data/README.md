@@ -52,7 +52,7 @@
 | 报告与文件导出 | `Blob` + `URL.createObjectURL` + `<a download>` | ✅ |
 | 单文件可双击运行 | 全部 CSS/JS 内联，无 ES module 跨文件引用（或构建时内联） | ✅ |
 | 无需 WASM / 无需模型 | 四类规则均为字符串与时间戳运算 | ✅ |
-| 目标体积与 10MB/5000 cue 时延 | 设计目标，**未实测** | ⬜ 待 M5 基准回填 |
+| 目标体积与 10MB/5000 cue 时延 | ✅ 已实测（M5，本机单次） | ✅ 回填于 `plan/RELEASE-M6.md` §一 与 `docs/技术报告.md` §7.5；**单机单次实测，非跨机器承诺** |
 
 ---
 
@@ -152,18 +152,27 @@ data/truth/                与 samples 一一对应的真值 JSON（+ README.md 
 
 | 口径键 | 值 | 说明 |
 |---|---|---|
-| `drift.offsetRange` | −30000 … +30000 ms | 粗搜范围 |
-| `drift.offsetStepCoarse` | 100 ms | 粗搜步长 |
-| `drift.offsetStepFine` | 5 ms | 局部细化步长 |
+| `drift.offsetRange` | −30000 … +30000 ms | offset 粗搜范围 |
+| `drift.offsetStepCoarse` | 100 ms | offset 粗搜步长 |
+| `drift.offsetStepFine` | 5 ms | offset 局部细化步长 |
 | `drift.scaleRange` | 0.90 … 1.10 | 速率范围（覆盖 23.976/24/25/29.97 互转） |
-| `drift.scaleStepCoarse` | 0.001 | 粗搜步长 |
-| `drift.scaleStepFine` | 0.00005 | 局部细化步长 |
-| `drift.residualMaxMs` | 40 ms | 残差中位数超过即报 `timing.fps-drift` |
+| `drift.scaleStepCoarse` | 0.001 | scale 粗搜步长 |
+| `drift.scaleStepFine` | 0.00005 | scale 局部细化步长 |
+| `drift.residualMaxMs` | 40 ms | **残余漂移** `|scale−1| × 时间跨度` 超过即报 `timing.fps-drift` |
+| `drift.gridToleranceMs` | 1 ms | 拟合残差中位数须 ≤ 此值，才认定文件确实落在声明帧栅格上 |
 | `drift.minSamples` | 20 | 干净对少于此数则输出 `skipped`，不报漂移 |
 | `drift.tieBreak` | 先取 offset 更小，再取 scale 更小 | 并列最优的确定性取舍 |
 
-- 拟合模型：`expected ≈ offset + scale × actual`（或反向，方向在 `plan/03` 写死一处）。
+- **拟合模型（方向写死在此；`plan/03` §二 同文）**：`observed ≈ offset + scale × ref`。
+  `ref` 是**按声明帧率重建的帧栅格时间轴**：`ref₁ = 0`，
+  `refᵢ = refᵢ₋₁ + round(Δobservedᵢ ÷ (scale × 1000 ÷ declaredFps)) × (1000 ÷ declaredFps)`。
+  物理含义：`scale` = 声明帧率与播放帧率之比，`offset` = 整段时间轴平移。
+- **判据（M3 定稿）**：拟合的**残差中位数是拟合目标，不是判据**——自由 `scale` 会把纯比例漂移
+  完全吸收，残差恒接近 0，按"残差超限即报"将永不产出 finding。故报红条件为
+  **`|scale − 1| × 时间跨度 > drift.residualMaxMs`**，并以 `drift.gridToleranceMs`
+  作为"文件确实落在声明帧栅格上"的护栏（不落格 → `skipped`，不报）。
 - 只用通过 T01–T10 的"干净对"作样本；样本数少于口径下限（`drift.minSamples = 20`）时输出 `skipped`，不报漂移。
+- 未提供声明帧率时输出 `skipped`（`reason: "media_fps_unknown"`）。
 
 ### 4.6 卫生规则参数
 
@@ -177,11 +186,12 @@ data/truth/                与 samples 一一对应的真值 JSON（+ README.md 
 
 | 口径键 | 值 | 说明 |
 |---|---|---|
-| `report.schemaVersion` | `1` | 报告结构版本 |
-| `report.rulesetVersion` | `1` | 与本节同步递增 |
+| `report.schemaVersion` | `2` | 报告结构版本。M5 由 1 升到 2：`summary` 新增 `whitelist` 键（白名单命中计数），`fixes[]` 由恒空变为可填充 |
+| `report.rulesetVersion` | `1` | 与本节同步递增（M5 未改动任何阈值数值，故保持 1） |
 | `report.includeTimestamp` | `false`（默认） | 勾选后报告标注"非确定性导出" |
 | `report.pathInOutput` | `false` | 报告不含本机绝对路径 |
 | `report.sortKeys` | `(line, ruleId)` | findings 排序固定 |
+| `report.summaryKeys` | `(total, bySeverity, byRule, whitelist)` | `summary` 的键序固定；`whitelist` 是 M5 新增 |
 
 ### 4.8 性能口径
 
@@ -190,4 +200,6 @@ data/truth/                与 samples 一一对应的真值 JSON（+ README.md 
 | `perf.targetInput` | 10 MB / 5000 cue | 基准样本规模 |
 | `perf.targetWallMs` | 2000 ms | 设计目标；**实测值以末态回填**，不作跨机器硬承诺 |
 
-> 以上 `perf.*` 为设计目标，M5 基准实测后把结果写入 `plan/RELEASE-M6.md` 与技术报告，不在 README 里写成已达成。
+> 以上 `perf.*` 为设计目标；**M5 已实测回填**（本机 Node `v24.15.0`，5 轮中位 1242.9ms），
+> 结果写在 `plan/RELEASE-M6.md` §一 与 `docs/技术报告.md` §7.5。
+> **单机单次实测，不作跨机器硬承诺**；`tools/bench.mjs` 只测量、不判达标。

@@ -22,8 +22,12 @@ export const SOURCE_FILES = [
   "src/core/parse/vtt.js",
   "src/core/parse/ass.js",
   "src/core/parse/index.js",
+  "src/core/rules/drift.js",
   "src/core/rules/timing.js",
+  "src/core/rules/readability.js",
+  "src/core/rules/hygiene.js",
   "src/core/report.js",
+  "src/core/fix.js",
   "src/core/pipeline.js",
   "src/ui/app.js",
 ];

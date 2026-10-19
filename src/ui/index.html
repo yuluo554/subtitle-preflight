@@ -39,6 +39,9 @@
       <label>媒体时长（秒，可选，用于越界判定）
         <input id="media-duration" type="number" min="0" step="0.1" placeholder="例如 1440">
       </label>
+      <label>素材帧率（fps，可选，用于漂移拟合）
+        <input id="declared-fps" type="number" min="1" step="0.001" placeholder="例如 25">
+      </label>
       <button id="clear" class="btn btn-ghost">清空</button>
     </div>
   </section>
@@ -62,10 +65,22 @@
       <tbody id="finding-rows"></tbody>
     </table>
 
-    <div id="skipped-block" class="skipped" hidden>
-      <h3>未执行的检查</h3>
+    <details id="skipped-block" class="skipped" hidden>
+      <summary>未执行的检查 <span id="skipped-count"></span></summary>
       <ul id="skipped-list"></ul>
-    </div>
+      <h4>能力声明（capabilities）</h4>
+      <ul id="capabilities-list"></ul>
+    </details>
+
+    <details id="fixes-block" class="skipped" hidden>
+      <summary>已应用的修复 <span id="fixes-count"></span></summary>
+      <ul id="fixes-list"></ul>
+    </details>
+
+    <details id="whitelist-block" class="skipped" hidden>
+      <summary>白名单命中 <span id="whitelist-count"></span></summary>
+      <ul id="whitelist-list"></ul>
+    </details>
   </section>
 
   <section class="card">
@@ -73,11 +88,11 @@
     <div class="actions">
       <button id="export-json" class="btn btn-primary">导出 JSON（逐文件）</button>
       <button id="export-merged" class="btn">导出 JSON（合并）</button>
-      <button class="btn" disabled title="M5 实现">导出 Markdown（M5）</button>
-      <button class="btn" disabled title="M5 实现">导出 CSV（M5）</button>
-      <button class="btn" disabled title="M5 实现">导出修复后字幕（M5）</button>
+      <button id="export-markdown" class="btn">导出 Markdown</button>
+      <button id="export-csv" class="btn">导出 CSV</button>
+      <button id="export-fixed" class="btn">导出修复后字幕</button>
     </div>
-    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。</p>
+    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。修复只做可逆动作（改时间码 / 补闭合标签 / 删行尾空白 / 重编序号），不改一个字。</p>
   </section>
 </main>
 

@@ -270,7 +270,7 @@ test("格式样本：三格式 × 8 变体 = 24 份全部进入对账（不是�
 
 /* ---------- 时序样本 × 解析 + 规则：端到端对账（T11 为 M3 目标） ---------- */
 
-test("时序样本端到端：除 T11（M3）外全部与真值 expectFindings 0 容差", () => {
+test("时序样本端到端：全部与真值 expectFindings 0 容差（T11 已于 M3 落地）", () => {
   const SP = loadCore();
   const pipeline = SP.get("core/pipeline");
   const dir = join(ROOT, "data/truth/timing");
@@ -281,31 +281,98 @@ test("时序样本端到端：除 T11（M3）外全部与真值 expectFindings 0
   for (const file of files) {
     const truth = JSON.parse(readFileSync(join(dir, file), "utf8"));
     const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
-    const options = typeof truth.mediaDurationMs === "number" ? { mediaDurationMs: truth.mediaDurationMs } : {};
+    const options = {};
+    if (typeof truth.mediaDurationMs === "number") options.mediaDurationMs = truth.mediaDurationMs;
+    // T11 需要声明帧率（口径 §4.5）：样本真值里写明 declared fps
+    if (truth.class === "T11" && truth.fps) options.declaredFps = truth.fps.declared;
     const result = pipeline.run([{ name: truth.sample.split("/").pop(), bytes }], options).results[0];
-    const got = result.report.findings.map((f) => `${f.ruleId}@${f.line}:${f.field}`).sort();
+    // 时序真值的契约是**时序域**的 finding；可读性域由上面那份端到端测试负责（M4 起两域并存）
+    const got = result.report.findings
+      .filter((f) => f.ruleId.startsWith("timing."))
+      .map((f) => `${f.ruleId}@${f.line}:${f.field}`)
+      .sort();
     const want = truth.expectFindings.map((f) => `${f.ruleId}@${f.line}:${f.field}`).sort();
 
-    if (truth.class === "T11") {
-      // T11 未实现：必须以 skipped 显式声明，不得静默返回空（K7）。M3 补齐后本条转为 0 容差。
-      assert.deepEqual(got, [], "T11 未实现时不得产出 finding");
-      assert.ok(
-        result.report.skipped.some((s) => s.ruleId === "timing.fps-drift" && s.reason === "not_implemented"),
-        "T11 未实现时必须进 skipped[]"
-      );
-      pending.push(file);
-      continue;
-    }
+    if (got.length !== want.length || got.some((v, i) => v !== want[i])) pending.push(file);
     assert.deepEqual(got, want, `${file}: 端到端检出与真值不一致`);
   }
-  assert.deepEqual(pending, ["t11-fps-drift.json"], "M2 收尾时唯一未达成的时序类应是 T11");
+  assert.deepEqual(pending, [], "M3 后不应再有任何时序类 pending");
 });
+
+/* ---------- 可读性样本 × 解析 + 规则：端到端 0 容差（M4 目标） ---------- */
+
+test("可读性样本端到端：200 条标注 cue 与真值 expectFindings 逐条 0 容差", () => {
+  const SP = loadCore();
+  const pipeline = SP.get("core/pipeline");
+  const dir = join(ROOT, "data/truth/readability");
+  const files = readdirSync(dir).filter((n) => n.endsWith(".json")).sort();
+  assert.equal(files.length, 4, "可读性真值应 4 份（zh 60 / en 60 / ja 40 / 混排 40）");
+
+  let cueTotal = 0;
+  const mismatches = [];
+  for (const file of files) {
+    const truth = JSON.parse(readFileSync(join(dir, file), "utf8"));
+    const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
+    const result = pipeline.run([{ name: truth.sample.split("/").pop(), bytes }], {}).results[0];
+    cueTotal += result.file.cueCount;
+
+    // 只取可读性域 finding（时序域由上面那份测试负责），按 (line, ruleId) 归一到真值口径
+    const got = result.report.findings
+      .filter((f) => f.ruleId.startsWith("readability."))
+      .map((f) => `${f.ruleId}@${f.line}`)
+      .sort();
+    const want = truth.expectFindings.map((f) => `${f.ruleId}@${f.line}`).sort();
+    if (got.length !== want.length || got.some((v, i) => v !== want[i])) {
+      const gs = new Set(got);
+      const ws = new Set(want);
+      mismatches.push(
+        `${file}: 多报 [${got.filter((x) => !ws.has(x)).join(", ")}] 漏报 [${want.filter((x) => !gs.has(x)).join(", ")}]`
+      );
+    }
+
+    // 逐条 cue 复核：expectFindings 是该条 cue 的**全部**规则输出（真值契约）
+    const byLine = new Map();
+    for (const f of result.report.findings) {
+      if (!f.ruleId.startsWith("readability.")) continue;
+      if (!byLine.has(f.line)) byLine.set(f.line, []);
+      byLine.get(f.line).push(f.ruleId);
+    }
+    for (const cue of truth.cues) {
+      const actual = (byLine.get(cue.line) || []).slice().sort();
+      const expect = cue.expectFindings.slice().sort();
+      if (JSON.stringify(actual) !== JSON.stringify(expect)) {
+        mismatches.push(`${file} 第 ${cue.line} 行：期望 [${expect}] 实算 [${actual}]`);
+      }
+    }
+  }
+  assert.equal(cueTotal, 200, `可读性端到端应覆盖 200 条 cue，实为 ${cueTotal}`);
+  assert.deepEqual(mismatches, [], "可读性端到端与真值不一致");
+});
+
+test("可读性样本端到端：语言档位在报告中标注（zh / en / ja 三档都出现）", () => {
+  const SP = loadCore();
+  const pipeline = SP.get("core/pipeline");
+  const dir = join(ROOT, "data/truth/readability");
+  const langs = new Set();
+  for (const file of readdirSync(dir).filter((n) => n.endsWith(".json")).sort()) {
+    const truth = JSON.parse(readFileSync(join(dir, file), "utf8"));
+    const bytes = readFileSync(join(ROOT, "data/samples", truth.sample));
+    const result = pipeline.run([{ name: truth.sample.split("/").pop(), bytes }], {}).results[0];
+    for (const f of result.report.findings) {
+      if (!f.ruleId.startsWith("readability.")) continue;
+      const m = /档位 (zh|en|ja)/.exec(f.expected + " " + f.message);
+      if (m) langs.add(m[1]);
+    }
+  }
+  assert.deepEqual([...langs].sort(), ["en", "ja", "zh"], "报告必须标注实际生效的语言档位");
+});
+
+/* ---------- 格式样本 × 解码层：文件卡片与报告标注 ---------- */
 
 test("解码层对齐：CRLF / BOM / GBK 形态在文件卡片与报告里都有标注", () => {
   const SP = loadCore();
   const pipeline = SP.get("core/pipeline");
   const dir = join(ROOT, "data/truth/format");
-  // 每格式各挑 3 份：CRLF（换行）、BOM（字节前导）、GBK（编码回退）
   const picks = [];
   for (const format of ["srt", "vtt", "ass"]) {
     for (const suffix of ["v1-bom", "v2-crlf", "v6-gbk"]) picks.push(`${format}-${suffix}`);

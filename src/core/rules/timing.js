@@ -1,10 +1,9 @@
 /**
- * 时序规则（模块 ②）。本轮实现 T01–T10 与 T12；T11（fps 漂移）在 M3 补齐，
- * 未实现时**必须**进入 `skipped[]`，不得静默返回空。
+ * 时序规则（模块 ②）。T01–T12 全部实现；T11（fps 漂移）的拟合内核在 `core/rules/drift`。
  *
  * 输出 finding 的 `line` 取时间码所在行（`timeLine`），便于回到原文定位。
  */
-SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
+SP.define("core/rules/timing", ["core/ruleset", "core/rules/drift"], function (ruleset, drift) {
   "use strict";
 
   const RULE_IDS = [
@@ -18,6 +17,7 @@ SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
     "timing.past-media-end",
     "timing.file-order-mismatch",
     "timing.timecode-precision",
+    "timing.fps-drift",
   ];
 
   const IMPLEMENTED = new Set(RULE_IDS);
@@ -165,10 +165,17 @@ SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
       }
     }
 
-    // T11 未实现：显式声明，不返回空成功
-    skipped.push({ kind: "rule", ruleId: "timing.fps-drift", reason: "not_implemented" });
+    // T11 fps 漂移拟合：只在用户声明帧率且干净对够多时才可能报红（K7：不可用即 skipped）
+    const driftOutcome = drift.evaluate(cues, { declaredFps: opts.declaredFps });
+    for (const findingItem of driftOutcome.findings) findings.push(findingItem);
+    for (const skippedItem of driftOutcome.skipped) skipped.push(skippedItem);
 
-    return { findings, skipped, implemented: Array.from(IMPLEMENTED).sort() };
+    return {
+      findings,
+      skipped,
+      implemented: Array.from(IMPLEMENTED).sort(),
+      driftFit: driftOutcome.fit,
+    };
   }
 
   function findFirstReversal(cues) {

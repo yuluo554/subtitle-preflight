@@ -262,7 +262,7 @@ test("pipeline：SRT 端到端跑通并产出报告", () => {
   const result = outcome.results[0];
   assert.equal(result.file.format, "srt");
   assert.equal(result.file.cueCount, 1);
-  assert.equal(result.report.schemaVersion, 1);
+  assert.equal(result.report.schemaVersion, 2);
   assert.equal(result.report.rulesetVersion, 1);
   assert.equal(result.report.inputSha256.length, 64);
   assert.ok(Array.isArray(result.report.skipped));

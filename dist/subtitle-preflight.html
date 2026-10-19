@@ -149,7 +149,10 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
 .badge-muted { color: var(--muted); }
 
 .skipped { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+.skipped summary { cursor: pointer; color: var(--fg); font-size: .9rem; }
+.skipped h4 { margin: .7rem 0 .2rem; font-size: .84rem; color: var(--muted); font-weight: 600; }
 .skipped ul { margin: .2rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .86rem; }
+.cap-missing { color: var(--warn); }
 
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; }
 .note { color: var(--muted); font-size: .82rem; margin: .9rem 0 0; }
@@ -199,6 +202,9 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
       <label>媒体时长（秒，可选，用于越界判定）
         <input id="media-duration" type="number" min="0" step="0.1" placeholder="例如 1440">
       </label>
+      <label>素材帧率（fps，可选，用于漂移拟合）
+        <input id="declared-fps" type="number" min="1" step="0.001" placeholder="例如 25">
+      </label>
       <button id="clear" class="btn btn-ghost">清空</button>
     </div>
   </section>
@@ -222,10 +228,22 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
       <tbody id="finding-rows"></tbody>
     </table>
 
-    <div id="skipped-block" class="skipped" hidden>
-      <h3>未执行的检查</h3>
+    <details id="skipped-block" class="skipped" hidden>
+      <summary>未执行的检查 <span id="skipped-count"></span></summary>
       <ul id="skipped-list"></ul>
-    </div>
+      <h4>能力声明（capabilities）</h4>
+      <ul id="capabilities-list"></ul>
+    </details>
+
+    <details id="fixes-block" class="skipped" hidden>
+      <summary>已应用的修复 <span id="fixes-count"></span></summary>
+      <ul id="fixes-list"></ul>
+    </details>
+
+    <details id="whitelist-block" class="skipped" hidden>
+      <summary>白名单命中 <span id="whitelist-count"></span></summary>
+      <ul id="whitelist-list"></ul>
+    </details>
   </section>
 
   <section class="card">
@@ -233,11 +251,11 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
     <div class="actions">
       <button id="export-json" class="btn btn-primary">导出 JSON（逐文件）</button>
       <button id="export-merged" class="btn">导出 JSON（合并）</button>
-      <button class="btn" disabled title="M5 实现">导出 Markdown（M5）</button>
-      <button class="btn" disabled title="M5 实现">导出 CSV（M5）</button>
-      <button class="btn" disabled title="M5 实现">导出修复后字幕（M5）</button>
+      <button id="export-markdown" class="btn">导出 Markdown</button>
+      <button id="export-csv" class="btn">导出 CSV</button>
+      <button id="export-fixed" class="btn">导出修复后字幕</button>
     </div>
-    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。</p>
+    <p class="note">报告不含时间戳、不含本机路径；同一输入两次导出逐字节一致。修复只做可逆动作（改时间码 / 补闭合标签 / 删行尾空白 / 重编序号），不改一个字。</p>
   </section>
 </main>
 
@@ -320,6 +338,7 @@ SP.define("data/ruleset", [], function () {
     "drift.scaleStepCoarse": 0.001,
     "drift.scaleStepFine": 0.00005,
     "drift.residualMaxMs": 40,
+    "drift.gridToleranceMs": 1,
     "drift.minSamples": 20,
     "drift.tieBreak": "offset-min-then-scale-min",
     "hygiene.allCapsMinLength": 20,
@@ -334,13 +353,19 @@ SP.define("data/ruleset", [], function () {
       "etc.",
       "♪"
     ],
-    "report.schemaVersion": 1,
+    "report.schemaVersion": 2,
     "report.rulesetVersion": 1,
     "report.includeTimestamp": false,
     "report.pathInOutput": false,
     "report.sortKeys": [
       "line",
       "ruleId"
+    ],
+    "report.summaryKeys": [
+      "total",
+      "bySeverity",
+      "byRule",
+      "whitelist"
     ],
     "perf.targetInput": "10 MB / 5000 cue",
     "perf.targetWallMs": 2000
@@ -1083,14 +1108,257 @@ SP.define("core/parse/index", ["core/parse/srt", "core/parse/vtt", "core/parse/a
   return { parseText, detectFormat, FORMAT_LABEL };
 });
 
+// ---- src/core/rules/drift.js ----
+/**
+ * fps 漂移拟合（模块 ② 的 T11 子过程）。
+ *
+ * **模型（方向写死在此，与 `data/README.md` §4.5 / `plan/03` §二 同文）**：
+ *   `observed ≈ offset + scale × ref`
+ *   `ref` = **声明帧率的帧栅格时间轴**：把每个 cue 的起点吸附到声明帧率的整数帧号，
+ *   由相邻间隔 `Δkᵢ = round(Δobservedᵢ ÷ (scale × 帧长))` 累积得到。
+ *   `scale` 是声明帧率与实际帧率之比；`offset` 是整段时间轴平移。
+ *
+ * **判据**：拟合残差中位数是**拟合目标**，不是判据——自由 `scale` 会把纯比例漂移完全吸收，
+ *   残差恒接近 0。故报红条件为
+ *   `|scale − 1| × 时间跨度 > drift.residualMaxMs`，
+ *   并以 `drift.gridToleranceMs` 作为"文件确实落在声明帧栅格上"的护栏（不落格 → `skipped`，不报）。
+ *
+ * 定点整数：内部一律用「微毫秒」(µms = ms × 1000) 做加减与取整，比较全走整数，避免浮点比较。
+ * 阈值全部读 `data/ruleset.v1.json`（K1）；本文件不出现阈值字面量。
+ * 不碰 DOM / 不发网络 / 不读时钟 / 不读 locale / 不用随机（K2）。
+ */
+SP.define("core/rules/drift", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  const MICRO_PER_MS = 1000;
+  const SCALE_UNIT = 1000000;
+
+  /** 整数中位数（偶数取中间两数的下中位，保证确定性）。 */
+  function medianInt(values) {
+    const sorted = values.slice().sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    if (sorted.length % 2) return sorted[mid];
+    return Math.floor((sorted[mid - 1] + sorted[mid]) / 2);
+  }
+
+  function textOf(cue) {
+    return (cue.textLines || []).join("\n");
+  }
+
+  /**
+   * 「干净对」序列：个体合法（可解析 / 起点非负 / 时长 > 0）且相邻对合法
+   * （不重叠 / 间隔 ≥ `timing.gapMin` / 起点不回退 / 非重复 cue）的**最长连续段**。
+   * 只用它作拟合样本，避免被坏 cue 带偏（plan/03 §二）。
+   */
+  function cleanRunStarts(cues, gapMin) {
+    const valid = [];
+    for (let i = 0; i < cues.length; i += 1) {
+      const cue = cues[i];
+      valid.push(
+        !cue.unparsable &&
+          typeof cue.startMs === "number" &&
+          typeof cue.endMs === "number" &&
+          isFinite(cue.startMs) &&
+          isFinite(cue.endMs) &&
+          cue.startMs >= 0 &&
+          cue.endMs > cue.startMs
+      );
+    }
+    let best = [];
+    let run = [];
+    for (let i = 0; i < cues.length; i += 1) {
+      if (!valid[i]) {
+        run = [];
+        continue;
+      }
+      if (run.length === 0) {
+        run = [i];
+      } else {
+        const prev = cues[run[run.length - 1]];
+        const cue = cues[i];
+        const gap = cue.startMs - prev.endMs;
+        const cleanPair =
+          gap >= gapMin &&
+          cue.startMs >= prev.startMs &&
+          !(cue.startMs === prev.startMs && cue.endMs === prev.endMs && textOf(cue) === textOf(prev));
+        if (cleanPair) run.push(i);
+        else run = [i];
+      }
+      if (run.length > best.length) best = run.slice();
+    }
+    return best.map((i) => cues[i].startMs);
+  }
+
+  /**
+   * @param {number[]} startsMs 干净对的起点（毫秒）
+   * @param {number|undefined} declaredFps 用户声明的帧率
+   * @returns {{ok:true, fit:Object} | {ok:false, skipped:Object}}
+   */
+  function fit(startsMs, declaredFps) {
+    const n = startsMs.length;
+    const minSamples = ruleset.get("drift.minSamples");
+
+    if (!(typeof declaredFps === "number" && isFinite(declaredFps) && declaredFps > 0)) {
+      return {
+        ok: false,
+        skipped: { kind: "rule", ruleId: "timing.fps-drift", reason: "media_fps_unknown", samples: n },
+      };
+    }
+    if (n < minSamples) {
+      return {
+        ok: false,
+        skipped: { kind: "rule", ruleId: "timing.fps-drift", reason: "samples_below_min", samples: n },
+      };
+    }
+
+    const T = startsMs.map((ms) => Math.round(ms * MICRO_PER_MS));
+    const frameMicro = SCALE_UNIT / declaredFps; // 帧长（µms）
+
+    const offsetRange = ruleset.get("drift.offsetRange");
+    const offLo = offsetRange[0] * MICRO_PER_MS;
+    const offHi = offsetRange[1] * MICRO_PER_MS;
+    const offCoarse = ruleset.get("drift.offsetStepCoarse") * MICRO_PER_MS;
+    const offFine = ruleset.get("drift.offsetStepFine") * MICRO_PER_MS;
+
+    const scaleRange = ruleset.get("drift.scaleRange");
+    const sLo = Math.round(scaleRange[0] * SCALE_UNIT);
+    const sHi = Math.round(scaleRange[1] * SCALE_UNIT);
+    const sCoarse = Math.round(ruleset.get("drift.scaleStepCoarse") * SCALE_UNIT);
+    const sFine = Math.round(ruleset.get("drift.scaleStepFine") * SCALE_UNIT);
+
+    /** 声明帧栅格时间轴（µms）：f₁ = 0；fᵢ = fᵢ₋₁ + round(ΔTᵢ ÷ (scale × 帧长))；refᵢ = fᵢ × 帧长。 */
+    function buildRef(scaleMicro) {
+      const step = (scaleMicro / SCALE_UNIT) * frameMicro;
+      const frames = [0];
+      for (let i = 1; i < n; i += 1) {
+        frames.push(frames[i - 1] + Math.round((T[i] - T[i - 1]) / step));
+      }
+      return frames.map((f) => Math.round(f * frameMicro));
+    }
+
+    /** 给定 scale 与 ref 的预测值（不含 offset），µms 整数。 */
+    function predict(scaleMicro, ref) {
+      const out = [];
+      for (let i = 0; i < n; i += 1) out.push(Math.round((scaleMicro * ref[i]) / SCALE_UNIT));
+      return out;
+    }
+
+    /** 给定 scale 的解析最优 offset = 残差中位数，再吸附到指定步长的网格并夹到口径范围。 */
+    function evaluateScale(scaleMicro, ref, step) {
+      const pred = predict(scaleMicro, ref);
+      const diff = [];
+      for (let i = 0; i < n; i += 1) diff.push(T[i] - pred[i]);
+      let offU = Math.round(medianInt(diff) / step) * step;
+      if (offU < offLo) offU = offLo;
+      if (offU > offHi) offU = offHi;
+      const residual = [];
+      for (let i = 0; i < n; i += 1) residual.push(Math.abs(T[i] - offU - pred[i]));
+      return { offsetU: offU, residualU: medianInt(residual) };
+    }
+
+    function better(cand, best) {
+      if (best === null) return true;
+      if (cand.residualU !== best.residualU) return cand.residualU < best.residualU;
+      if (cand.offsetU !== best.offsetU) return cand.offsetU < best.offsetU;
+      return cand.scaleU < best.scaleU;
+    }
+
+    // 粗搜：scale 走粗网格（每个 scale 用解析最优 offset）
+    let best = null;
+    for (let scaleU = sLo; scaleU <= sHi; scaleU += sCoarse) {
+      const cand = Object.assign({ scaleU }, evaluateScale(scaleU, buildRef(scaleU), offCoarse));
+      if (better(cand, best)) best = cand;
+    }
+    // 细搜：±1 粗步邻域，按细步长走 2-D 网格（offset 也按细步长细化）
+    let fine = Object.assign({}, best);
+    const sFrom = Math.max(sLo, best.scaleU - sCoarse);
+    const sTo = Math.min(sHi, best.scaleU + sCoarse);
+    for (let scaleU = sFrom; scaleU <= sTo; scaleU += sFine) {
+      const ref = buildRef(scaleU);
+      const pred = predict(scaleU, ref);
+      const oFrom = Math.max(offLo, best.offsetU - offCoarse);
+      const oTo = Math.min(offHi, best.offsetU + offCoarse);
+      for (let offU = oFrom; offU <= oTo; offU += offFine) {
+        const residual = [];
+        for (let i = 0; i < n; i += 1) residual.push(Math.abs(T[i] - offU - pred[i]));
+        const cand = { scaleU, offsetU: offU, residualU: medianInt(residual) };
+        if (better(cand, fine)) fine = cand;
+      }
+    }
+
+    const spanU = T[T.length - 1] - T[0];
+    const driftU = Math.round((Math.abs(fine.scaleU - SCALE_UNIT) * spanU) / SCALE_UNIT);
+    const gridToleranceU = ruleset.get("drift.gridToleranceMs") * MICRO_PER_MS;
+    const residualMaxU = ruleset.get("drift.residualMaxMs") * MICRO_PER_MS;
+
+    const onGrid = fine.residualU <= gridToleranceU;
+    const drifted = driftU > residualMaxU;
+    const fires = onGrid && drifted;
+
+    const detail = {
+      scale: fine.scaleU / SCALE_UNIT,
+      offsetMs: fine.offsetU / MICRO_PER_MS,
+      residualMs: fine.residualU / MICRO_PER_MS,
+      spanMs: spanU / MICRO_PER_MS,
+      driftMs: driftU / MICRO_PER_MS,
+      samples: n,
+      declaredFps,
+      residualMaxMs: ruleset.get("drift.residualMaxMs"),
+      gridToleranceMs: ruleset.get("drift.gridToleranceMs"),
+    };
+
+    if (!fires) {
+      return {
+        ok: false,
+        skipped: {
+          kind: "rule",
+          ruleId: "timing.fps-drift",
+          reason: onGrid ? "drift_within_tolerance" : "not_frame_grid",
+          samples: n,
+        },
+      };
+    }
+    return { ok: true, fit: detail };
+  }
+
+  /**
+   * @param {Array} cues 解析层产出的 cue 序列
+   * @param {{declaredFps?:number}} options
+   * @returns {{findings:Array, skipped:Array, fit:Object|null}}
+   */
+  function evaluate(cues, options) {
+    const opts = options || {};
+    const starts = cleanRunStarts(cues, ruleset.get("timing.gapMin"));
+    const outcome = fit(starts, opts.declaredFps);
+    if (!outcome.ok) return { findings: [], skipped: [outcome.skipped], fit: null };
+    const f = outcome.fit;
+    return {
+      findings: [
+        {
+          ruleId: "timing.fps-drift",
+          severity: "warn",
+          line: 1,
+          field: "fit",
+          expected: "|scale - 1| × 跨度 <= " + f.residualMaxMs + " ms",
+          actual: "scale=" + f.scale + " offsetMs=" + f.offsetMs + " 漂移=" + f.driftMs + "ms",
+          message: "整条时间轴等比漂移（疑似字幕帧率与素材帧率不一致）",
+        },
+      ],
+      skipped: [],
+      fit: f,
+    };
+  }
+
+  return { fit, evaluate, cleanRunStarts, medianInt };
+});
+
 // ---- src/core/rules/timing.js ----
 /**
- * 时序规则（模块 ②）。本轮实现 T01–T10 与 T12；T11（fps 漂移）在 M3 补齐，
- * 未实现时**必须**进入 `skipped[]`，不得静默返回空。
+ * 时序规则（模块 ②）。T01–T12 全部实现；T11（fps 漂移）的拟合内核在 `core/rules/drift`。
  *
  * 输出 finding 的 `line` 取时间码所在行（`timeLine`），便于回到原文定位。
  */
-SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
+SP.define("core/rules/timing", ["core/ruleset", "core/rules/drift"], function (ruleset, drift) {
   "use strict";
 
   const RULE_IDS = [
@@ -1104,6 +1372,7 @@ SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
     "timing.past-media-end",
     "timing.file-order-mismatch",
     "timing.timecode-precision",
+    "timing.fps-drift",
   ];
 
   const IMPLEMENTED = new Set(RULE_IDS);
@@ -1251,10 +1520,17 @@ SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
       }
     }
 
-    // T11 未实现：显式声明，不返回空成功
-    skipped.push({ kind: "rule", ruleId: "timing.fps-drift", reason: "not_implemented" });
+    // T11 fps 漂移拟合：只在用户声明帧率且干净对够多时才可能报红（K7：不可用即 skipped）
+    const driftOutcome = drift.evaluate(cues, { declaredFps: opts.declaredFps });
+    for (const findingItem of driftOutcome.findings) findings.push(findingItem);
+    for (const skippedItem of driftOutcome.skipped) skipped.push(skippedItem);
 
-    return { findings, skipped, implemented: Array.from(IMPLEMENTED).sort() };
+    return {
+      findings,
+      skipped,
+      implemented: Array.from(IMPLEMENTED).sort(),
+      driftFit: driftOutcome.fit,
+    };
   }
 
   function findFirstReversal(cues) {
@@ -1265,6 +1541,649 @@ SP.define("core/rules/timing", ["core/ruleset"], function (ruleset) {
   }
 
   return { run, RULE_IDS, findFirstReversal };
+});
+
+// ---- src/core/rules/readability.js ----
+/**
+ * 可读性规则（模块 ③）：R01–R07 全部实现。
+ *
+ * 口径（`data/README.md` §4.2–§4.4，`plan/03` §三）：
+ *  - 可见字符一律**定点千分字符**（milli）：全角 = 1000，半角 = 500；空白、换行、
+ *    ASS 覆写块 `{...}`、HTML 标签 `<...>`、SDH 标记（方括号 / 圆括号 / `♪`）不计入。
+ *  - 档位由 cue 的**主导文字类别**决定（全角为主 → zh；假名过半 → ja；半角为主 → en）。
+ *  - 行长上限的单位是"该档字符数"，折成千分字符：中/日 = `line.maxWidthFull × 1000`，
+ *    英 = `line.maxWidthHalf × 500`。
+ *  - `readability.*` 属**文本类** finding，`line` 取 cue 的 `sourceLine`（K15）。
+ *
+ * 阈值全部读 `data/ruleset.v1.json`（K1）；本文件不出现阈值字面量。
+ * 纯函数层（K2）：不碰 DOM / 不发网络 / 不读时钟 / 不读 locale / 不用随机。
+ * 与 `tools/samples/readabilityoracle.mjs`（不 import src/core）构成**差分对照**（K13）。
+ */
+SP.define("core/rules/readability", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  const RULE_IDS = [
+    "readability.cps",
+    "readability.line-length",
+    "readability.too-many-lines",
+    "readability.too-few-chars",
+    "readability.duration-short",
+    "readability.duration-long",
+    "readability.repeated-text",
+  ];
+
+  const IMPLEMENTED = new Set(RULE_IDS);
+
+  /** 千分字符换算基数（口径 §4.3 的计数单位，不是阈值）：全角 1000 / 半角 500。 */
+  const FULL_MILLI = 1000;
+  const HALF_MILLI = 500;
+
+  /** 全角码点区间；区间外一律按半角计。 */
+  const FULL_RANGES = [
+    [0x1100, 0x115f],
+    [0x2e80, 0x303e],
+    [0x3041, 0x33ff],
+    [0x3400, 0x4dbf],
+    [0x4e00, 0x9fff],
+    [0xa000, 0xa4cf],
+    [0xac00, 0xd7a3],
+    [0xf900, 0xfaff],
+    [0xfe30, 0xfe4f],
+    [0xff01, 0xff60],
+    [0xffe0, 0xffe6],
+    [0x20000, 0x2fffd],
+    [0x30000, 0x3fffd],
+  ];
+
+  const KANA_RE = /[\u3041-\u30ff]/;
+
+  function isFullWidth(ch) {
+    const cp = ch.codePointAt(0);
+    for (let i = 0; i < FULL_RANGES.length; i += 1) {
+      const range = FULL_RANGES[i];
+      if (cp >= range[0] && cp <= range[1]) return true;
+    }
+    return false;
+  }
+
+  /** 剥离不计入可见字符的装饰：ASS 覆写块 / HTML 标签 / SDH 方括号、圆括号 / 音符。 */
+  function stripDecorations(line) {
+    return String(line)
+      .replace(/\{[^}]*\}/g, "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/（[^）]*）/g, "")
+      .replace(/\([^)]*\)/g, "")
+      .replace(/♪/g, "");
+  }
+
+  /** 一行 → 千分字符宽度（空白与换行不计）。 */
+  function lineWidthMilli(line) {
+    let milli = 0;
+    const chars = Array.from(stripDecorations(line));
+    for (let i = 0; i < chars.length; i += 1) {
+      const ch = chars[i];
+      if (/\s/.test(ch)) continue;
+      milli += isFullWidth(ch) ? FULL_MILLI : HALF_MILLI;
+    }
+    return milli;
+  }
+
+  /** 一条 cue 的可见字符度量：总宽 / 最长行 / 可见行数。 */
+  function measureCue(textLines) {
+    let charsMilli = 0;
+    let maxLineWidthMilli = 0;
+    let visibleLineCount = 0;
+    const lines = textLines || [];
+    for (let i = 0; i < lines.length; i += 1) {
+      const width = lineWidthMilli(lines[i]);
+      if (width > 0) visibleLineCount += 1;
+      if (width > maxLineWidthMilli) maxLineWidthMilli = width;
+      charsMilli += width;
+    }
+    return { charsMilli, maxLineWidthMilli, visibleLineCount };
+  }
+
+  /**
+   * 主导文字类别 → 档位：全角计数为 0 → en；假名 ≥ 全角半数 → ja；
+   * 全角 ≥ 半角 → zh；否则 en。逐码点判定，不调用分词或模型。
+   */
+  function dominantLang(textLines) {
+    let full = 0;
+    let half = 0;
+    let kana = 0;
+    const lines = textLines || [];
+    for (let i = 0; i < lines.length; i += 1) {
+      const chars = Array.from(stripDecorations(lines[i]));
+      for (let k = 0; k < chars.length; k += 1) {
+        const ch = chars[k];
+        if (/\s/.test(ch)) continue;
+        if (isFullWidth(ch)) {
+          full += 1;
+          if (KANA_RE.test(ch)) kana += 1;
+        } else {
+          half += 1;
+        }
+      }
+    }
+    if (full === 0) return "en";
+    if (kana * 2 >= full) return "ja";
+    if (full >= half) return "zh";
+    return "en";
+  }
+
+  /**
+   * finding 严格保持 plan/02 §3.2 的 7 键形态（ruleId/severity/line/field/expected/actual/message）；
+   * 语言档位（zh/en/ja）写进 `expected` 与 `message` 文案，不新增键（避免数据契约漂移）。
+   */
+  function finding(ruleId, cue, field, expected, actual, message, severity) {
+    return {
+      ruleId,
+      severity: severity || "error",
+      line: cue.sourceLine,
+      field,
+      expected: String(expected),
+      actual: String(actual),
+      message,
+    };
+  }
+
+  function langLabel(lang) {
+    return lang === "en" ? "英" : lang === "ja" ? "日" : "中";
+  }
+
+  /**
+   * @param {Array<{textLines:string[], startMs:number, endMs:number, sourceLine:number}>} cues
+   * @returns {{findings:Array, skipped:Array, implemented:string[]}}
+   */
+  function run(cues, options) {
+    const findings = [];
+    const cpsZh = ruleset.get("cps.zh");
+    const cpsEn = ruleset.get("cps.en");
+    const cpsJa = ruleset.get("cps.ja");
+    const maxLines = ruleset.get("line.maxLines");
+    const minCharsMilli = ruleset.get("line.minChars") * FULL_MILLI;
+    const durMin = ruleset.get("duration.min");
+    const durMax = ruleset.get("duration.max");
+
+    const fullLimitMilli = ruleset.get("line.maxWidthFull") * FULL_MILLI;
+    const halfLimitMilli = ruleset.get("line.maxWidthHalf") * HALF_MILLI;
+
+    function cpsLimitOf(lang) {
+      if (lang === "en") return cpsEn;
+      if (lang === "ja") return cpsJa;
+      return cpsZh;
+    }
+
+    function lineLimitMilli(lang) {
+      return lang === "en" ? halfLimitMilli : fullLimitMilli;
+    }
+
+    for (let i = 0; i < cues.length; i += 1) {
+      const cue = cues[i];
+      const prev = i > 0 ? cues[i - 1] : null;
+      const lang = dominantLang(cue.textLines);
+      const measured = measureCue(cue.textLines);
+      const durationMs = cue.endMs - cue.startMs;
+
+      const cpsLimit = cpsLimitOf(lang);
+      if (durationMs > 0 && measured.charsMilli > cpsLimit * durationMs) {
+        findings.push(
+          finding(
+            "readability.cps",
+            cue,
+            "cps",
+            "<= " + cpsLimit + " cps（档位 " + lang + "）",
+            "charsMilli=" + measured.charsMilli + " / " + durationMs + "ms",
+            "阅读速度超过口径上限（档位 " + lang + "，" + langLabel(lang) + "文）"
+          )
+        );
+      }
+
+      const lineLimit = lineLimitMilli(lang);
+      if (measured.maxLineWidthMilli > lineLimit) {
+        findings.push(
+          finding(
+            "readability.line-length",
+            cue,
+            "maxLineWidthMilli",
+            "<= " + lineLimit + " 千分字符（档位 " + lang + "）",
+            "最长行 " + measured.maxLineWidthMilli,
+            "单行长度超过该档行长上限（档位 " + lang + "，" + langLabel(lang) + "文）"
+          )
+        );
+      }
+
+      if (measured.visibleLineCount > maxLines) {
+        findings.push(
+          finding(
+            "readability.too-many-lines",
+            cue,
+            "visibleLineCount",
+            "<= " + maxLines,
+            measured.visibleLineCount,
+            "可见行数超过显示行数上限（档位 " + lang + "）"
+          )
+        );
+      }
+
+      if (measured.charsMilli < minCharsMilli) {
+        findings.push(
+          finding(
+            "readability.too-few-chars",
+            cue,
+            "charsMilli",
+            ">= " + minCharsMilli + " 千分字符",
+            measured.charsMilli,
+            "可见字符数低于口径下限（档位 " + lang + "）"
+          )
+        );
+      }
+
+      if (durationMs < durMin) {
+        findings.push(
+          finding(
+            "readability.duration-short",
+            cue,
+            "durationMs",
+            ">= " + durMin + " ms",
+            durationMs,
+            "显示时长低于口径下限（档位 " + lang + "）",
+            "warn"
+          )
+        );
+      }
+
+      if (durationMs > durMax) {
+        findings.push(
+          finding(
+            "readability.duration-long",
+            cue,
+            "durationMs",
+            "<= " + durMax + " ms",
+            durationMs,
+            "显示时长超过口径上限（档位 " + lang + "）",
+            "warn"
+          )
+        );
+      }
+
+      if (
+        prev &&
+        textOf(cue) === textOf(prev) &&
+        (cue.startMs !== prev.startMs || cue.endMs !== prev.endMs)
+      ) {
+        findings.push(
+          finding(
+            "readability.repeated-text",
+            cue,
+            "text",
+            "与上一条文本不同",
+            "与上一条文本相同（时间不同）",
+            "相邻 cue 文本重复（档位 " + lang + "）",
+            "warn"
+          )
+        );
+      }
+    }
+
+    return { findings, skipped: [], implemented: RULE_IDS.slice() };
+  }
+
+  function textOf(cue) {
+    return (cue.textLines || []).join("\n");
+  }
+
+  return {
+    run,
+    RULE_IDS,
+    IMPLEMENTED,
+    dominantLang,
+    measureCue,
+    lineWidthMilli,
+    stripDecorations,
+    isFullWidth,
+  };
+});
+
+// ---- src/core/rules/hygiene.js ----
+/**
+ * 卫生规则（模块 ④）：S01–S10 全部实现。
+ *
+ * 口径（`data/README.md` §4.6，`plan/03` §四）：
+ *  - 阈值与白名单**全部读 `data/ruleset.v1.json`**（K1），本文件不出现阈值字面量。
+ *  - `hygiene.*` 属**文本类** finding，`line` 取 cue 的 `sourceLine`（K15）。
+ *  - 同一条 cue 的多行命中同一条规则时只报一条（`line` 相同 → 重复项只是噪声），
+ *    报告因此保持确定性、可读。
+ *  - 白名单命中次数随报告输出（`summary.whitelist`），不得静默。
+ *  - 纯函数层（K2）：不碰 DOM / 不发网络 / 不读时钟 / 不读 locale / 不用随机。
+ *  - 与 `tools/samples/hygieneoracle.mjs`（不 import src/core）构成**差分对照**（K13）。
+ */
+SP.define("core/rules/hygiene", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  const RULE_IDS = [
+    "hygiene.cjk-latin-spacing",
+    "hygiene.punctuation-width",
+    "hygiene.trailing-punctuation",
+    "hygiene.unclosed-tag",
+    "hygiene.ass-override-residue",
+    "hygiene.placeholder-residue",
+    "hygiene.font-tag-residue",
+    "hygiene.sdh-marker",
+    "hygiene.all-caps",
+    "hygiene.repeated-punctuation",
+  ];
+
+  const IMPLEMENTED = new Set(RULE_IDS);
+
+  /** CJK 码点（含中文标点区与假名区，与真值侧判定式同口径）。 */
+  const CJK = /[\u2e80-\u303e\u3041-\u33ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/;
+  const LATIN_OR_DIGIT = /[A-Za-z0-9]/;
+  const HAN = /[\u4e00-\u9fff]/;
+  const TAG_RE = /<\/?([ibu])\s*\/?>/gi;
+  const ASS_OVERRIDE_RE = /\{\\[^}]*\}/;
+  const PLACEHOLDER_RE = /%(\d+\$)?[sdf]/;
+  const BRACE_INDEX_RE = /\{\d+\}/;
+  const BRACE_NAMED_RE = /\{[A-Za-z_][A-Za-z0-9_]*\}/g;
+  const FONT_TAG_RE = /<font\b[^>]*>/i;
+  const SDH_BRACKET_RE = /\[music\]/i;
+  const SDH_PAREN_RE = /（[^）]*(笑声|掌声|音乐|歌唱|欢呼)[^）]*）/;
+  const SONG_RE = /^♪[\s\S]*♪$/;
+  const REPEATED_PUNCT_RE = /([,.;!?，。！？：；、])\1+/g;
+  const NUMERIC_RE = /\d+\.\d+/g;
+  const ELLIPSIS_RE = /\.\.\./g;
+  const EN_FULLWIDTH_PUNCT_RE = /[，。！？：；（）]/;
+  const ZH_HALFWIDTH_PUNCT_RE = /[,!?:;]/;
+
+  /** 剥离不计入可见字符的装饰：ASS 覆写块 / HTML 标签 / SDH 方括号、圆括号 / 音符。 */
+  function stripDecorations(line) {
+    return String(line)
+      .replace(/\{[^}]*\}/g, "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/（[^）]*）/g, "")
+      .replace(/\([^)]*\)/g, "")
+      .replace(/♪/g, "");
+  }
+
+  function whitelist() {
+    const list = ruleset.get("hygiene.whitelist");
+    return Array.isArray(list) ? list : [];
+  }
+
+  function isWhitelisted(token, list) {
+    return list.indexOf(token) >= 0;
+  }
+
+  /** S01：CJK 与拉丁/数字直接相邻，且该拉丁词不在白名单。命中时返回该词。 */
+  function cjkLatinSpacing(raw, list) {
+    const text = raw;
+    for (let i = 0; i + 1 < text.length; i += 1) {
+      const a = text[i];
+      const b = text[i + 1];
+      let latinStart = -1;
+      if (CJK.test(a) && LATIN_OR_DIGIT.test(b)) {
+        latinStart = i + 1;
+      } else if (LATIN_OR_DIGIT.test(a) && CJK.test(b)) {
+        latinStart = i;
+        while (latinStart > 0 && LATIN_OR_DIGIT.test(text[latinStart - 1])) latinStart -= 1;
+      }
+      if (latinStart < 0) continue;
+      let end = latinStart;
+      while (end < text.length && LATIN_OR_DIGIT.test(text[end])) end += 1;
+      const token = text.slice(latinStart, end);
+      if (isWhitelisted(token, list)) continue;
+      return token;
+    }
+    return null;
+  }
+
+  /** S02：中文语境出现半角 `, . ! ? : ;`，或英文语境出现全角标点。命中时返回该标点。 */
+  function punctuationWidth(raw, list) {
+    if (HAN.test(raw)) {
+      let text = raw;
+      for (const token of list) text = text.split(token).join("");
+      text = text.replace(NUMERIC_RE, "").replace(ELLIPSIS_RE, "");
+      const m = ZH_HALFWIDTH_PUNCT_RE.exec(text);
+      return m ? m[0] : null;
+    }
+    const m = EN_FULLWIDTH_PUNCT_RE.exec(raw);
+    return m ? m[0] : null;
+  }
+
+  /** S03：行尾为 `。` / `.`（问号感叹号不报）；省略号与白名单缩写不报。 */
+  function trailingPunctuation(raw, list) {
+    const text = String(raw).trim();
+    if (/[。]$/.test(text)) return "。";
+    if (!/\.$/.test(text)) return null;
+    if (/\.\.\.$/.test(text)) return null;
+    for (const token of list) {
+      if (text.endsWith(token)) return null;
+    }
+    return ".";
+  }
+
+  /** S04：`<i>/<b>/<u>` 未闭合或交叉嵌套；自闭合形态不报。 */
+  function unclosedTag(raw) {
+    const stack = [];
+    TAG_RE.lastIndex = 0;
+    let m;
+    while ((m = TAG_RE.exec(raw))) {
+      const tag = m[1].toLowerCase();
+      const whole = m[0];
+      if (/\/\s*>$/.test(whole) && !/^<\//.test(whole)) continue; // 自闭合 <i/>
+      if (/^<\//.test(whole)) {
+        if (stack.length === 0 || stack[stack.length - 1] !== tag) return whole;
+        stack.pop();
+      } else {
+        stack.push(tag);
+      }
+    }
+    return stack.length > 0 ? "<" + stack[stack.length - 1] + ">" : null;
+  }
+
+  /** S05：非 ASS 输出含 `{\...}` 覆写块，或 `{` 未闭合。 */
+  function assOverrideResidue(raw) {
+    const m = ASS_OVERRIDE_RE.exec(raw);
+    if (m) return m[0];
+    let depth = 0;
+    for (const ch of raw) {
+      if (ch === "{") depth += 1;
+      else if (ch === "}") depth -= 1;
+      if (depth < 0) return "}";
+    }
+    return depth !== 0 ? "{" : null;
+  }
+
+  /** S06：残留 `%s` / `%1$s` / `{0}` / `{name}`；单字母数学表达式 `{x}` 不报。 */
+  function placeholderResidue(raw) {
+    const percent = PLACEHOLDER_RE.exec(raw);
+    if (percent) return percent[0];
+    const index = BRACE_INDEX_RE.exec(raw);
+    if (index) return index[0];
+    BRACE_NAMED_RE.lastIndex = 0;
+    const named = raw.match(BRACE_NAMED_RE) || [];
+    for (const token of named) {
+      if (!/^\{[a-z]\}$/.test(token)) return token;
+    }
+    return null;
+  }
+
+  /** S07：残留 `<font ...>`。 */
+  function fontTagResidue(raw) {
+    const m = FONT_TAG_RE.exec(raw);
+    return m ? m[0] : null;
+  }
+
+  /** S08：SDH 标记 `[music]` / `（笑声）` 一类 / `♪`；整条以 `♪` 起止的歌词语境不报。 */
+  function sdhMarker(raw) {
+    const text = String(raw).trim();
+    if (text.length > 2 && SONG_RE.test(text)) return null;
+    const bracket = SDH_BRACKET_RE.exec(raw);
+    if (bracket) return bracket[0];
+    const paren = SDH_PAREN_RE.exec(raw);
+    if (paren) return paren[0];
+    return /♪/.test(raw) ? "♪" : null;
+  }
+
+  /** S09：全大写且可见长度 ≥ `hygiene.allCapsMinLength`（半角字符数）。 */
+  function allCaps(raw, list, minLength) {
+    const visible = stripDecorations(raw).replace(/\s/g, "");
+    if (visible.length < minLength) return null;
+    if (!/[A-Za-z]/.test(visible)) return null;
+    if (visible !== visible.toUpperCase()) return null;
+    if (isWhitelisted(visible, list)) return null;
+    return visible;
+  }
+
+  /** S10：同类标点连续 ≥ `hygiene.repeatPunctMin` 次。 */
+  function repeatedPunctuation(raw, minRepeat) {
+    REPEATED_PUNCT_RE.lastIndex = 0;
+    let m;
+    while ((m = REPEATED_PUNCT_RE.exec(raw))) {
+      if (m[0].length >= minRepeat) return m[0];
+    }
+    return null;
+  }
+
+  /** 每条规则的判定式 → 命中详情（`null` = 不报）。 */
+  function checksFor(line, opts) {
+    const list = opts.whitelist;
+    return [
+      ["hygiene.cjk-latin-spacing", cjkLatinSpacing(line, list), "spacing", "warn"],
+      ["hygiene.punctuation-width", punctuationWidth(line, list), "punctuation", "warn"],
+      ["hygiene.trailing-punctuation", trailingPunctuation(line, list), "textEnd", "warn"],
+      ["hygiene.unclosed-tag", unclosedTag(line), "tags", "error"],
+      ["hygiene.ass-override-residue", assOverrideResidue(line), "override", "error"],
+      ["hygiene.placeholder-residue", placeholderResidue(line), "placeholder", "error"],
+      ["hygiene.font-tag-residue", fontTagResidue(line), "fontTag", "error"],
+      ["hygiene.sdh-marker", sdhMarker(line), "sdh", "error"],
+      ["hygiene.all-caps", allCaps(line, list, opts.allCapsMinLength), "casing", "warn"],
+      ["hygiene.repeated-punctuation", repeatedPunctuation(line, opts.repeatPunctMin), "punctuation", "warn"],
+    ];
+  }
+
+  /** 每类规则的报告文案（`actual` 由判定式给出，这里是 `expected` 与 `message`）。 */
+  const COPY = {
+    "hygiene.cjk-latin-spacing": {
+      expected: "CJK 与拉丁/数字之间留空格",
+      message: "中日韩文字与拉丁/数字直接相邻（排版卫生）",
+    },
+    "hygiene.punctuation-width": {
+      expected: "标点宽度与语境一致（中文用全角 / 英文用半角）",
+      message: "标点宽度与所在语境不符（排版卫生）",
+    },
+    "hygiene.trailing-punctuation": {
+      expected: "行尾不使用 。/.",
+      message: "行尾出现句号（问号、感叹号不属口径范围）",
+    },
+    "hygiene.unclosed-tag": {
+      expected: "标签成对闭合且不交叉嵌套",
+      message: "内联标签未闭合或交叉嵌套",
+    },
+    "hygiene.ass-override-residue": {
+      expected: "不含 ASS 覆写块",
+      message: "残留 ASS 覆写块或花括号未闭合",
+    },
+    "hygiene.placeholder-residue": {
+      expected: "不含未替换占位符",
+      message: "残留未替换的占位符",
+    },
+    "hygiene.font-tag-residue": {
+      expected: "不含 <font> 内联样式",
+      message: "残留 <font> 内联样式标签",
+    },
+    "hygiene.sdh-marker": {
+      expected: "不含 SDH 标记",
+      message: "残留听障辅助标记（方括号 / 圆括号情绪 / 音符）",
+    },
+    "hygiene.all-caps": {
+      expected: "非全大写（专有名词、缩写除外）",
+      message: "整行全大写，超过口径长度下限",
+    },
+    "hygiene.repeated-punctuation": {
+      expected: "同类标点不连续重复",
+      message: "同类标点连续重复达到口径下限",
+    },
+  };
+
+  /** 白名单命中次数（按词计数，只列命中 > 0 的词，键按字典序）。 */
+  function countWhitelist(cues) {
+    const list = whitelist();
+    const counts = new Map();
+    for (const cue of cues) {
+      for (const line of cue.textLines || []) {
+        for (const token of list) {
+          const parts = String(line).split(token);
+          const hits = parts.length - 1;
+          if (hits > 0) counts.set(token, (counts.get(token) || 0) + hits);
+        }
+      }
+    }
+    const out = {};
+    for (const key of Array.from(counts.keys()).sort()) out[key] = counts.get(key);
+    return out;
+  }
+
+  /**
+   * @param {Array<{textLines:string[], sourceLine:number}>} cues
+   * @returns {{findings:Array, skipped:Array, implemented:string[], whitelist:Object}}
+   */
+  function run(cues) {
+    const list = whitelist();
+    const allCapsMinLength = ruleset.get("hygiene.allCapsMinLength");
+    const repeatPunctMin = ruleset.get("hygiene.repeatPunctMin");
+    const findings = [];
+
+    for (const cue of cues) {
+      const seen = new Set();
+      for (const line of cue.textLines || []) {
+        for (const entry of checksFor(line, { whitelist: list, allCapsMinLength, repeatPunctMin })) {
+          const ruleId = entry[0];
+          const detail = entry[1];
+          if (detail === null || detail === undefined) continue;
+          if (seen.has(ruleId)) continue; // 同 cue 同规则只报一条（line 相同）
+          seen.add(ruleId);
+          const copy = COPY[ruleId];
+          findings.push({
+            ruleId,
+            severity: entry[3],
+            line: cue.sourceLine,
+            field: entry[2],
+            expected: copy.expected,
+            actual: String(detail),
+            message: copy.message,
+          });
+        }
+      }
+    }
+
+    return {
+      findings,
+      skipped: [],
+      implemented: RULE_IDS.slice(),
+      whitelist: countWhitelist(cues),
+    };
+  }
+
+  return {
+    run,
+    RULE_IDS,
+    IMPLEMENTED,
+    countWhitelist,
+    cjkLatinSpacing,
+    punctuationWidth,
+    trailingPunctuation,
+    unclosedTag,
+    assOverrideResidue,
+    placeholderResidue,
+    fontTagResidue,
+    sdhMarker,
+    allCaps,
+    repeatedPunctuation,
+    stripDecorations,
+  };
 });
 
 // ---- src/core/report.js ----
@@ -1284,7 +2203,22 @@ SP.define("core/report", ["core/ruleset"], function (ruleset) {
     return 0;
   }
 
-  function summarize(findings) {
+  /**
+   * 白名单命中计数（`hygiene.whitelist` 里每个词的命中次数）并进 `summary`：
+   * 命中次数不得静默——被白名单"放过"的内容必须能在报告里看见。
+   * 键按字典序输出，未命中的词不出现（保持报告紧凑且确定）。
+   */
+  function summarizeWhitelist(counts) {
+    const out = {};
+    const source = counts || {};
+    for (const key of Object.keys(source).sort()) {
+      const value = source[key];
+      if (typeof value === "number" && value > 0) out[key] = value;
+    }
+    return out;
+  }
+
+  function summarize(findings, whitelist) {
     const byRule = {};
     const bySeverity = { error: 0, warn: 0, info: 0 };
     for (const f of findings) {
@@ -1297,12 +2231,17 @@ SP.define("core/report", ["core/ruleset"], function (ruleset) {
     }
     const rules = {};
     for (const key of Object.keys(byRule).sort()) rules[key] = byRule[key];
-    return { total: findings.length, bySeverity, byRule: rules };
+    return {
+      total: findings.length,
+      bySeverity,
+      byRule: rules,
+      whitelist: summarizeWhitelist(whitelist),
+    };
   }
 
   /**
    * @param {{inputSha256:string, findings:Array, fixes:Array, skipped:Array,
-   *          capabilities:Object, diagnostics:Array}} input
+   *          capabilities:Object, diagnostics:Array, whitelist:Object}} input
    */
   function build(input) {
     const findings = (input.findings || []).slice().sort(compareFindings);
@@ -1310,7 +2249,7 @@ SP.define("core/report", ["core/ruleset"], function (ruleset) {
       schemaVersion: ruleset.schemaVersion,
       rulesetVersion: ruleset.version,
       inputSha256: input.inputSha256 || "",
-      summary: summarize(findings),
+      summary: summarize(findings, input.whitelist),
       findings,
       fixes: (input.fixes || []).slice(),
       skipped: (input.skipped || []).slice(),
@@ -1323,7 +2262,427 @@ SP.define("core/report", ["core/ruleset"], function (ruleset) {
     return JSON.stringify(report, null, 2) + "\n";
   }
 
-  return { build, toJson, summarize, compareFindings };
+  /* ---------- Markdown / CSV：与 JSON 共用**同一份 findings 数组**（单一渲染源） ---------- */
+
+  const CSV_COLUMNS = ["ruleId", "severity", "line", "field", "expected", "actual", "message"];
+  const SNIPPET_MAX = 60;
+
+  /** 截断到 60 字符（按码点），超出加 `…`；换行折成空格。 */
+  function snippet(value) {
+    const text = String(value === null || value === undefined ? "" : value).replace(/\s*\n\s*/g, " ");
+    const chars = Array.from(text);
+    if (chars.length <= SNIPPET_MAX) return text;
+    return chars.slice(0, SNIPPET_MAX).join("") + "…";
+  }
+
+  /** RFC 4180：含逗号 / 引号 / 换行的字段加双引号，内部引号翻倍。 */
+  function csvField(value) {
+    const text = String(value === null || value === undefined ? "" : value);
+    if (/[",\n\r]/.test(text)) return '"' + text.split('"').join('""') + '"';
+    return text;
+  }
+
+  function csvLine(cells) {
+    return cells.map(csvField).join(",");
+  }
+
+  /**
+   * CSV：列固定 `ruleId,severity,line,field,expected,actual,message`；
+   * 行序与 `report.findings` 完全一致（不重排、不丢行）。
+   */
+  function toCsv(report) {
+    const rows = [csvLine(CSV_COLUMNS)];
+    for (const f of report.findings || []) {
+      rows.push(
+        csvLine([
+          f.ruleId,
+          f.severity,
+          f.line,
+          f.field,
+          f.expected,
+          f.actual,
+          f.message,
+        ])
+      );
+    }
+    return rows.join("\r\n") + "\r\n";
+  }
+
+  const SEVERITY_ORDER = ["error", "warn", "info"];
+  const SEVERITY_LABEL = { error: "错误", warn: "警告", info: "提示" };
+
+  /**
+   * Markdown：按 severity 分组；每条含 `第 N 行` 与原文片段（截断 60 字符，超出加 `…`）。
+   * 组内顺序沿用 `report.findings` 的 `(line, ruleId)` 序。
+   */
+  function toMarkdown(report) {
+    const findings = report.findings || [];
+    const out = [];
+    out.push("# 字幕投放前体检报告");
+    out.push("");
+    out.push("- rulesetVersion: " + report.rulesetVersion + "（schemaVersion " + report.schemaVersion + "）");
+    out.push("- inputSha256: `" + report.inputSha256 + "`");
+    out.push(
+      "- 合计 " +
+        findings.length +
+        " 条（错误 " +
+        report.summary.bySeverity.error +
+        " / 警告 " +
+        report.summary.bySeverity.warn +
+        " / 提示 " +
+        report.summary.bySeverity.info +
+        "）"
+    );
+    const whitelistKeys = Object.keys(report.summary.whitelist || {});
+    out.push(
+      "- 白名单命中：" +
+        (whitelistKeys.length
+          ? whitelistKeys.map((k) => "`" + k + "` ×" + report.summary.whitelist[k]).join("、")
+          : "无")
+    );
+    out.push("");
+
+    for (const severity of SEVERITY_ORDER) {
+      const group = findings.filter((f) => f.severity === severity);
+      if (!group.length) continue;
+      out.push("## " + SEVERITY_LABEL[severity] + "（" + group.length + "）");
+      out.push("");
+      out.push("| 位置 | 规则 | 期望 | 实测 | 说明 |");
+      out.push("|---|---|---|---|---|");
+      for (const f of group) {
+        out.push(
+          "| 第 " +
+            f.line +
+            " 行 | `" +
+            f.ruleId +
+            "` | " +
+            mdCell(f.expected) +
+            " | " +
+            mdCell(f.actual) +
+            " | " +
+            mdCell(f.message) +
+            " |"
+        );
+      }
+      out.push("");
+    }
+
+    if (!findings.length) {
+      out.push("无违规。");
+      out.push("");
+    }
+
+    const skipped = report.skipped || [];
+    out.push("## 未执行的检查（" + skipped.length + "）");
+    out.push("");
+    if (!skipped.length) {
+      out.push("无。");
+    } else {
+      for (const item of skipped) {
+        out.push("- " + mdCell(describeSkipped(item)));
+      }
+    }
+    out.push("");
+    return out.join("\n");
+  }
+
+  /** 表格单元格里的 `|` 必须转义，否则列会被撑开。 */
+  function mdCell(value) {
+    return snippet(value).replace(/\|/g, "\\|");
+  }
+
+  function describeSkipped(item) {
+    const label = item.ruleId || item.domain || item.format || item.kind || "unknown";
+    return label + " — " + (item.reason || "unknown");
+  }
+
+  return { build, toJson, toCsv, toMarkdown, summarize, compareFindings, snippet, csvField, CSV_COLUMNS };
+});
+
+// ---- src/core/fix.js ----
+/**
+ * 可逆修复（模块 ⑤ 的修复部分）。
+ *
+ * 纪律（`plan/03` §5.2）：
+ *  - 只做**白名单**内的修复，且一律是"可逆无损"动作：不改文本、不改断句、不重排语序、
+ *    不合并/拆分 cue、不改字号颜色、不删 cue。
+ *  - 修复落在**原文行**上（行号 → 新行内容），因此修复后的文件与原文逐行同构，
+ *    格式（SRT / VTT / ASS）不需要重新序列化，也就不会引入格式漂移。
+ *  - **每条规则的违规数不得因修复而增加**：缩短时间码时以 `duration.min` 作护栏——
+ *    若缩短后时长低于可读性下限，宁可不修（否则会立刻产生新的 `readability.duration-short`）。
+ *  - 修复记录进 `fixes[]`（`{ruleId, line, action, before, after}`），报告可见；
+ *    不可修时不产出任何记录（`fixes[]` 为空）。
+ *  - 纯函数层（K2）：不碰 DOM / 不发网络 / 不读时钟 / 不读 locale / 不用随机。
+ *  - 阈值只读 `data/ruleset.v1.json`（K1）。
+ */
+SP.define("core/fix", ["core/ruleset"], function (ruleset) {
+  "use strict";
+
+  const TC_SHAPE = /^([+\-]?)(\d{1,4}):(\d{1,2}):(\d{1,2})([,.])(\d{1,4})$/;
+  const TC_FIND = /[+\-]?\d{1,4}:\d{1,2}:\d{1,2}[,.]\d{1,4}/g;
+  const TRAILING_WS = /[ \t]+$/;
+  const TAG_RE = /<\/?([ibu])\s*\/?>/gi;
+  const INDEX_LINE = /^\s*\d+\s*$/;
+  const INDEX_PARTS = /^(\s*)(\d+)(\s*)$/;
+
+  function pad2(value) {
+    const s = String(value);
+    return s.length >= 2 ? s : "0" + s;
+  }
+
+  /** 时间码 token 的**形态**（小时位数 / 分隔符 / 小数位数），用于同形重写。 */
+  function shapeOf(token) {
+    const m = TC_SHAPE.exec(token);
+    if (!m) return null;
+    return { hourDigits: m[2].length, sep: m[5], fracDigits: m[6].length };
+  }
+
+  function formatMs(ms, shape) {
+    const abs = Math.abs(ms);
+    const h = Math.floor(abs / 3600000);
+    const mi = Math.floor((abs % 3600000) / 60000);
+    const s = Math.floor((abs % 60000) / 1000);
+    const frac = abs % 1000;
+    let fracStr;
+    if (shape.fracDigits === 1) fracStr = String(Math.floor(frac / 100));
+    else if (shape.fracDigits === 2) fracStr = pad2(Math.floor(frac / 10));
+    else {
+      fracStr = String(frac).padStart(3, "0");
+      while (fracStr.length < shape.fracDigits) fracStr += "0";
+    }
+    return (
+      (ms < 0 ? "-" : "") +
+      String(h).padStart(shape.hourDigits, "0") +
+      ":" +
+      pad2(mi) +
+      ":" +
+      pad2(s) +
+      shape.sep +
+      fracStr
+    );
+  }
+
+  /**
+   * 重写时间码行：**保留原行的分隔符与小数位数**，只换两个时间码的数值。
+   * 找不到两个时间码 token 时返回 null（宁可不修，也不猜格式）。
+   */
+  function rewriteTimeLine(line, startMs, endMs) {
+    TC_FIND.lastIndex = 0;
+    const matches = [];
+    let m;
+    while ((m = TC_FIND.exec(line))) matches.push({ token: m[0], index: m.index });
+    if (matches.length < 2) return null;
+    const shapeStart = shapeOf(matches[0].token);
+    const shapeEnd = shapeOf(matches[1].token);
+    if (!shapeStart || !shapeEnd) return null;
+    const first = formatMs(startMs, shapeStart);
+    const second = formatMs(endMs, shapeEnd);
+    return (
+      line.slice(0, matches[0].index) +
+      first +
+      line.slice(matches[0].index + matches[0].token.length, matches[1].index) +
+      second +
+      line.slice(matches[1].index + matches[1].token.length)
+    );
+  }
+
+  /** 补 `<i>/<b>/<u>` 闭合（只追加闭合标签，不新增样式）；交叉嵌套不可修 → null。 */
+  function closeTags(line) {
+    const stack = [];
+    TAG_RE.lastIndex = 0;
+    let m;
+    while ((m = TAG_RE.exec(line))) {
+      const tag = m[1].toLowerCase();
+      const whole = m[0];
+      if (/\/\s*>$/.test(whole) && !/^<\//.test(whole)) continue; // 自闭合
+      if (/^<\//.test(whole)) {
+        if (stack.length === 0 || stack[stack.length - 1] !== tag) return null; // 交叉嵌套
+        stack.pop();
+      } else {
+        stack.push(tag);
+      }
+    }
+    if (stack.length === 0) return null;
+    let out = line;
+    for (let k = stack.length - 1; k >= 0; k -= 1) out += "</" + stack[k] + ">";
+    return out;
+  }
+
+  /** 行尾空白：只删行尾空格/制表符；整行只剩空白时不动（避免改变块结构）。 */
+  function stripTrailingSpace(line) {
+    if (!TRAILING_WS.test(line)) return null;
+    const after = line.replace(TRAILING_WS, "");
+    return after === "" ? null : after;
+  }
+
+  /**
+   * SRT 序号重编：按时间序重排 cue 块并连续编号。
+   *
+   * 保守前提（不满足就不做，宁可不修）：
+   *  - 全部 cue 都是 SRT；
+   *  - 块区间互不重叠，且所有**非空行**都落在某个块内（文件确实是"块 + 空行"结构）；
+   *  - 每个块的首行都是序号行（缺序号的块不修，不凭空造序号）。
+   * @returns {{chunks:Array<string[]>, moves:Array} | null}
+   */
+  function planReorder(lines, cues) {
+    if (!cues.length) return null;
+    if (cues.some((cue) => cue.format !== "srt")) return null;
+    const blocks = [];
+    for (const cue of cues) {
+      const start = cue.sourceLine;
+      const end = cue.endLine >= cue.sourceLine ? cue.endLine : cue.sourceLine;
+      if (!Number.isInteger(start) || !Number.isInteger(end) || start < 1 || end > lines.length) return null;
+      blocks.push({ cue, start, end });
+    }
+    const covered = new Array(lines.length + 1).fill(false);
+    for (const block of blocks) {
+      for (let n = block.start; n <= block.end; n += 1) {
+        if (covered[n]) return null; // 块区间重叠
+        covered[n] = true;
+      }
+    }
+    for (let n = 1; n <= lines.length; n += 1) {
+      if (lines[n - 1].trim() !== "" && !covered[n]) return null; // 存在不属于任何块的内容
+    }
+    for (const block of blocks) {
+      if (!INDEX_LINE.test(lines[block.start - 1])) return null; // 缺序号行
+    }
+    const sorted = blocks.slice().sort((a, b) => {
+      if (a.cue.startMs !== b.cue.startMs) return a.cue.startMs - b.cue.startMs;
+      return a.cue.index - b.cue.index;
+    });
+    return { blocks, sorted };
+  }
+
+  /**
+   * @param {string} text 已归一化换行（LF）的原文
+   * @param {Array} cues 解析层产出的 cue（需要 `timeLine` / `textLineNumbers` / `sourceLine` / `endLine`）
+   * @param {{eol?:string}} options `eol: "crlf"` 时输出 CRLF；缺省为 LF（换行归一不是缺陷修复，不计入 fixes[]）
+   * @returns {{fixes:Array, text:string}}
+   */
+  function apply(text, cues, options) {
+    const opts = options || {};
+    const gapMin = ruleset.get("timing.gapMin");
+    const durationMin = ruleset.get("duration.min");
+    const source = String(text);
+    const lines = source.split("\n");
+    const list = cues || [];
+    const edits = new Map();
+    const fixes = [];
+
+    const current = (no) => {
+      if (!Number.isInteger(no) || no < 1 || no > lines.length) return null;
+      return edits.has(no) ? edits.get(no) : lines[no - 1];
+    };
+    const set = (no, content) => {
+      edits.set(no, content);
+    };
+
+    /* ① 去重叠 / 修间隔：缩短"前一条"的 end 到 `后一条 start − gapMin`，
+          使修完之后两条规则**同时消失**（若只缩到后一条 start，间隔恰好为 0，
+          会立刻被 `timing.gap-too-small` 接手）。
+          护栏：缩短后时长必须 > 0 **且 ≥ duration.min**，否则会新增 duration-short。 */
+    for (let i = 1; i < list.length; i += 1) {
+      const prev = list[i - 1];
+      const cur = list[i];
+      const gap = cur.startMs - prev.endMs;
+      if (gap >= gapMin) continue;
+      const desired = cur.startMs - gapMin;
+      if (!(desired > prev.startMs && desired < prev.endMs)) continue; // 时长必须 > 0
+      if (desired - prev.startMs < durationMin) continue; // 不得低于可读性时长下限
+      const before = current(prev.timeLine);
+      if (before === null) continue;
+      const after = rewriteTimeLine(before, prev.startMs, desired);
+      if (after === null || after === before) continue;
+      set(prev.timeLine, after);
+      fixes.push({
+        ruleId: gap < 0 ? "timing.overlap" : "timing.gap-too-small",
+        line: prev.timeLine,
+        action: gap < 0 ? "trim-overlap" : "fill-gap",
+        before,
+        after,
+      });
+    }
+
+    /* ② 去行尾空白：只删行尾空格/制表符。
+          **必须排在闭合标签之前**：`<i>斜体没关␠␠` 先去掉行尾空白，再补 `</i>` 才是
+          `<i>斜体没关</i>`；若顺序反过来，补上的闭合标签会把行尾空白"锁"在标签内侧。 */
+    for (let no = 1; no <= lines.length; no += 1) {
+      const before = current(no);
+      if (before === null) continue;
+      const after = stripTrailingSpace(before);
+      if (after === null) continue;
+      set(no, after);
+      fixes.push({ ruleId: null, line: no, action: "strip-trailing-space", before, after });
+    }
+
+    /* ③ 闭合标签：只追加闭合标签，不新增样式（交叉嵌套不修）。 */
+    for (const cue of list) {
+      const numbers = cue.textLineNumbers || [];
+      const texts = cue.textLines || [];
+      for (let k = 0; k < texts.length; k += 1) {
+        const no = numbers[k];
+        const before = current(no);
+        if (before === null) continue;
+        const after = closeTags(before);
+        if (after === null || after === before) continue;
+        set(no, after);
+        fixes.push({ ruleId: "hygiene.unclosed-tag", line: no, action: "close-tag", before, after });
+      }
+    }
+
+    /* ④ 序号重编（仅 SRT）：按时间序重排块 + 连续编号；不满足保守前提则整条跳过。 */
+    const edited = [];
+    for (let no = 1; no <= lines.length; no += 1) edited.push(current(no));
+    const plan = planReorder(edited, list);
+    let out = edited;
+    if (plan) {
+      const { blocks, sorted } = plan;
+      const alreadyOrdered = sorted.every((block, k) => block === blocks[k]);
+      const indexOk = blocks.every((block, k) => {
+        const parts = INDEX_PARTS.exec(edited[block.start - 1]);
+        return parts && Number(parts[2]) === k + 1;
+      });
+      if (!alreadyOrdered || !indexOk) {
+        const trailingBlanks = countTrailingBlanks(edited);
+        const rebuilt = [];
+        const moved = [];
+        sorted.forEach((block, k) => {
+          const chunk = edited.slice(block.start - 1, block.end);
+          const parts = INDEX_PARTS.exec(chunk[0]);
+          const oldNumber = parts ? Number(parts[2]) : null;
+          if (parts) chunk[0] = parts[1] + String(k + 1) + parts[3];
+          if (oldNumber !== k + 1 || block.start !== blocks[k].start) moved.push({ block, oldNumber, newNumber: k + 1 });
+          if (k > 0) rebuilt.push("");
+          for (const line of chunk) rebuilt.push(line);
+        });
+        for (let k = 0; k < trailingBlanks; k += 1) rebuilt.push("");
+        out = rebuilt;
+        // 只记**真的变了**的块：没变的块不该出现在 fixes[]（否则等于报了一次假修复）
+        for (const entry of moved) {
+          fixes.push({
+            ruleId: "parse.index-mismatch",
+            line: entry.block.start,
+            action: "renumber-index",
+            before: edited[entry.block.start - 1],
+            after: "序号 " + entry.oldNumber + " → " + entry.newNumber,
+          });
+        }
+      }
+    }
+
+    let result = out.join("\n");
+    if (opts.eol === "crlf") result = result.replace(/\n/g, "\r\n");
+    return { fixes, text: result };
+  }
+
+  function countTrailingBlanks(lines) {
+    let n = 0;
+    for (let i = lines.length - 1; i >= 0 && lines[i] === ""; i -= 1) n += 1;
+    return n;
+  }
+
+  return { apply, rewriteTimeLine, closeTags, stripTrailingSpace, formatMs, shapeOf, planReorder };
 });
 
 // ---- src/core/pipeline.js ----
@@ -1334,23 +2693,35 @@ SP.define("core/report", ["core/ruleset"], function (ruleset) {
  *  - 只串 L1，不做判定、不渲染。
  *  - 未实现的规则/解析器必须以 `skipped[]` + `capabilities` 形式进入产物。
  *  - 多文件按**文件名 Unicode 码点序**处理，保证确定性。
+ *  - 修复在同一份 cue 模型上做（`core/fix`），修复后的文本与报告一起返回，
+ *    界面只负责下载；重跑体检即得到"修复后违规数"（单调性由测试断言）。
  */
 SP.define(
   "core/pipeline",
-  ["core/decode", "core/parse/index", "core/rules/timing", "core/report", "core/sha256", "core/ruleset"],
-  function (decode, parser, timing, report, sha256, ruleset) {
+  [
+    "core/decode",
+    "core/parse/index",
+    "core/rules/timing",
+    "core/rules/readability",
+    "core/rules/hygiene",
+    "core/report",
+    "core/fix",
+    "core/sha256",
+    "core/ruleset",
+  ],
+  function (decode, parser, timing, readability, hygiene, report, fix, sha256, ruleset) {
     "use strict";
 
     const CAPABILITIES = {
       parsers: { srt: "implemented", vtt: "implemented", ass: "implemented" },
       rules: {
-        timing: "partial",
-        readability: "not_implemented",
-        hygiene: "not_implemented",
+        timing: "implemented",
+        readability: "implemented",
+        hygiene: "implemented",
       },
-      exports: { json: "implemented", markdown: "not_implemented", csv: "not_implemented" },
-      fixes: "not_implemented",
-      driftFit: "not_implemented",
+      exports: { json: "implemented", markdown: "implemented", csv: "implemented" },
+      fixes: "implemented",
+      driftFit: "implemented",
     };
 
     function compareName(a, b) {
@@ -1374,26 +2745,30 @@ SP.define(
 
       const timingResult = timing.run(parsed.cues, {
         mediaDurationMs: options.mediaDurationMs,
+        declaredFps: options.declaredFps,
         diagnostics: parsed.diagnostics,
       });
 
-      const findings = parsed.findings.concat(timingResult.findings);
-      const skipped = parsed.skipped.concat(timingResult.skipped);
+      const readabilityResult = readability.run(parsed.cues);
+      const hygieneResult = hygiene.run(parsed.cues);
 
-      // 未实现的规则域：显式声明，不静默
-      skipped.push({ kind: "ruleDomain", domain: "readability", reason: "not_implemented" });
-      skipped.push({ kind: "ruleDomain", domain: "hygiene", reason: "not_implemented" });
-      skipped.push({ kind: "export", format: "markdown", reason: "not_implemented" });
-      skipped.push({ kind: "export", format: "csv", reason: "not_implemented" });
-      skipped.push({ kind: "fix", reason: "not_implemented" });
+      const findings = parsed.findings
+        .concat(timingResult.findings)
+        .concat(readabilityResult.findings)
+        .concat(hygieneResult.findings);
+      const skipped = parsed.skipped.concat(timingResult.skipped).concat(readabilityResult.skipped);
+
+      const fixed = fix.apply(decoded.text, parsed.cues, {});
+      skipped.push({ kind: "fix", reason: fixed.fixes.length ? "applied" : "no_fixable_finding" });
 
       const built = report.build({
         inputSha256: sha256.sha256Hex(file.bytes),
         findings,
-        fixes: [],
+        fixes: fixed.fixes,
         skipped,
         capabilities: CAPABILITIES,
         diagnostics: decoded.diagnostics.concat(parsed.diagnostics),
+        whitelist: hygieneResult.whitelist,
       });
 
       return {
@@ -1411,12 +2786,16 @@ SP.define(
         cues: parsed.cues,
         report: built,
         json: report.toJson(built),
+        markdown: report.toMarkdown(built),
+        csv: report.toCsv(built),
+        fixedText: fixed.text,
+        driftFit: timingResult.driftFit || null,
       };
     }
 
     /**
      * @param {Array<{name:string, bytes:Uint8Array}>} files
-     * @param {{mediaDurationMs?:number}} options
+     * @param {{mediaDurationMs?:number, declaredFps?:number}} options
      */
     function run(files, options) {
       const opts = options || {};
@@ -1444,6 +2823,7 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     files: [],
     results: [],
     mediaDurationMs: null,
+    declaredFps: null,
   };
 
   function $(id) {
@@ -1491,7 +2871,10 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     const merged = state.files.concat(files);
     state.files = merged;
     try {
-      const outcome = pipeline.run(merged, { mediaDurationMs: state.mediaDurationMs });
+      const outcome = pipeline.run(merged, {
+        mediaDurationMs: state.mediaDurationMs,
+        declaredFps: state.declaredFps,
+      });
       state.results = outcome.results;
       render();
       setStatus("已体检 " + outcome.results.length + " 个文件", "ok");
@@ -1504,6 +2887,8 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     renderFiles();
     renderFindings();
     renderSkipped();
+    renderFixes();
+    renderWhitelist();
   }
 
   function renderFiles() {
@@ -1575,7 +2960,75 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
         list.appendChild(li);
       }
     }
+    $("skipped-count").textContent = "（" + seen.size + "）";
     $("skipped-block").hidden = seen.size === 0;
+    renderCapabilities();
+  }
+
+  /** 能力声明是数据结构，界面必须逐条摊开——"没写"和"没实现"一样不能被读成"通过"。 */
+  function renderCapabilities() {
+    const list = $("capabilities-list");
+    list.innerHTML = "";
+    const caps = state.results.length ? state.results[0].report.capabilities : {};
+    const rows = [];
+    for (const [key, value] of Object.entries(caps.parsers || {})) rows.push(["解析器 " + key, value]);
+    for (const [key, value] of Object.entries(caps.rules || {})) rows.push(["规则 " + key, value]);
+    for (const [key, value] of Object.entries(caps.exports || {})) rows.push(["导出 " + key, value]);
+    rows.push(["修复", caps.fixes]);
+    rows.push(["漂移拟合", caps.driftFit]);
+    for (const [label, value] of rows) {
+      const li = document.createElement("li");
+      li.textContent = label + " — " + value;
+      if (value !== "implemented") li.className = "cap-missing";
+      list.appendChild(li);
+    }
+  }
+
+  /** 已应用的修复：每条给出动作与前后值，修复不是黑盒。 */
+  function renderFixes() {
+    const list = $("fixes-list");
+    list.innerHTML = "";
+    let count = 0;
+    for (const result of state.results) {
+      for (const item of result.report.fixes) {
+        count += 1;
+        const li = document.createElement("li");
+        li.textContent =
+          result.file.name +
+          " 第 " +
+          (item.line === null ? "—" : item.line) +
+          " 行 · " +
+          item.action +
+          "（" +
+          item.before +
+          " → " +
+          item.after +
+          "）";
+        list.appendChild(li);
+      }
+    }
+    $("fixes-count").textContent = "（" + count + "）";
+    $("fixes-block").hidden = count === 0;
+  }
+
+  /** 白名单命中：被"放过"的内容必须能在界面看见（不得静默）。 */
+  function renderWhitelist() {
+    const list = $("whitelist-list");
+    list.innerHTML = "";
+    const totals = {};
+    for (const result of state.results) {
+      for (const [key, value] of Object.entries(result.report.summary.whitelist || {})) {
+        totals[key] = (totals[key] || 0) + value;
+      }
+    }
+    const keys = Object.keys(totals).sort();
+    for (const key of keys) {
+      const li = document.createElement("li");
+      li.textContent = key + " ×" + totals[key];
+      list.appendChild(li);
+    }
+    $("whitelist-count").textContent = "（" + keys.length + "）";
+    $("whitelist-block").hidden = keys.length === 0;
   }
 
   function download(name, text, mime) {
@@ -1606,6 +3059,37 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
       }),
     };
     download("subtitle-preflight.report.json", JSON.stringify(merged, null, 2) + "\n", "application/json;charset=utf-8");
+  }
+
+  function exportMarkdown() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const base = result.file.name.replace(/\.[^.]+$/, "");
+      download(base + ".report.md", result.markdown, "text/markdown;charset=utf-8");
+    }
+  }
+
+  function exportCsv() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const base = result.file.name.replace(/\.[^.]+$/, "");
+      download(base + ".report.csv", result.csv, "text/csv;charset=utf-8");
+    }
+  }
+
+  /**
+   * 修复后字幕：直接下载 pipeline 已经算好的文本（界面不重算、不改一个字）。
+   * 文件名带 `.fixed` 后缀，避免覆盖原文件。
+   */
+  function exportFixed() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const name = result.file.name;
+      const dot = name.lastIndexOf(".");
+      const base = dot > 0 ? name.slice(0, dot) : name;
+      const ext = dot > 0 ? name.slice(dot) : "";
+      download(base + ".fixed" + ext, result.fixedText, "text/plain;charset=utf-8");
+    }
   }
 
   function bind() {
@@ -1661,8 +3145,22 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
       if (state.files.length) analyze([]);
     });
 
+    $("declared-fps").addEventListener("change", function (event) {
+      const raw = event.target.value.trim();
+      if (!raw) {
+        state.declaredFps = null;
+        return;
+      }
+      const fps = Number(raw);
+      state.declaredFps = isFinite(fps) && fps > 0 ? fps : null;
+      if (state.files.length) analyze([]);
+    });
+
     $("export-json").addEventListener("click", exportJson);
     $("export-merged").addEventListener("click", exportMergedJson);
+    $("export-markdown").addEventListener("click", exportMarkdown);
+    $("export-csv").addEventListener("click", exportCsv);
+    $("export-fixed").addEventListener("click", exportFixed);
 
     $("clear").addEventListener("click", function () {
       state.files = [];

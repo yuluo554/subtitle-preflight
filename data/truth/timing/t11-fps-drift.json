@@ -2,7 +2,7 @@
   "sample": "timing/t11-fps-drift.srt",
   "class": "T11",
   "primaryRuleId": "timing.fps-drift",
-  "note": "25fps 素材按 23.976fps 播放：scale≈1.0427，全段线性漂移",
+  "note": "24 条 cue 的声明帧栅格（23.976fps）字幕在 25fps 素材上播放：全段等比拉伸 scale≈1.0427",
   "expectFindings": [
     {
       "ruleId": "timing.fps-drift",
@@ -26,11 +26,7 @@
     "scale": 1.042709,
     "offsetMs": 0,
     "residualMaxMs": 40,
-    "note": "M3 验收：复原 scale 误差 < 1 帧；offset 近似 0"
+    "note": "M3 验收：复原 scale 误差 < 1 帧（@25fps = 40ms）；offset 近似 0"
   },
-  "implementationStatus": "pending-M3",
-  "skippedDeclaration": {
-    "ruleId": "timing.fps-drift",
-    "reason": "not_implemented"
-  }
+  "implementationStatus": "implemented"
 }

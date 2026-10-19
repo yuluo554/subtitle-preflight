@@ -169,7 +169,7 @@ function buildCoverage({ ruleset, timingSamples, readability, hygiene }) {
       validatedBy: "tools/samples/timingoracle.mjs",
       notes:
         r === "timing.fps-drift"
-          ? "未实现（skipped，K7）；样本 t11-fps-drift.srt 已落库，M3 补齐拟合后转为检出"
+          ? "M3 已实现（帧栅格拟合 + 残余漂移判据）；正例 t11-fps-drift.srt 24 条 cue 落在声明帧栅格上"
           : "",
     })
   );

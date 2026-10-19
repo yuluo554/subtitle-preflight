@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
 import { ROOT } from "../tools/bundle.mjs";
+import { loadCore } from "./helpers/load.mjs";
 
 function listJs(dir, out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -86,6 +87,7 @@ test("架构：构建清单里的每个模块都在源码里被定义", () => {
     "core/parse/vtt",
     "core/parse/ass",
     "core/parse/index",
+    "core/rules/drift",
     "core/rules/timing",
     "core/report",
     "core/pipeline",
@@ -94,10 +96,36 @@ test("架构：构建清单里的每个模块都在源码里被定义", () => {
   for (const name of required) assert.ok(defined.has(name), "缺模块定义: " + name);
 });
 
-test("架构：未实现能力的声明是数据结构，不只是文档", () => {
+test("架构：能力的声明是数据结构，不只是文档", () => {
   const text = readFileSync(join(ROOT, "src/core/pipeline.js"), "utf8");
-  for (const key of ["vtt", "ass", "readability", "hygiene", "markdown", "csv"]) {
+  // 每个能力域都必须在 CAPABILITIES 里显式出现——"没写"与"没实现"一样是缺口
+  for (const key of [
+    "srt",
+    "vtt",
+    "ass",
+    "timing",
+    "readability",
+    "hygiene",
+    "json",
+    "markdown",
+    "csv",
+    "fixes",
+    "driftFit",
+  ]) {
     assert.ok(text.includes(key), "capabilities 缺声明: " + key);
   }
-  assert.ok(text.includes("not_implemented"));
+  // 声明值只能是这两种枚举，不能写自由文本（否则下游无法机读）
+  assert.ok(text.includes("implemented"));
+  const SP = loadCore();
+  const caps = SP.get("core/pipeline").CAPABILITIES;
+  const allowed = new Set(["implemented", "not_implemented"]);
+  const values = [];
+  for (const [key, value] of Object.entries(caps.parsers)) values.push(["parsers." + key, value]);
+  for (const [key, value] of Object.entries(caps.rules)) values.push(["rules." + key, value]);
+  for (const [key, value] of Object.entries(caps.exports)) values.push(["exports." + key, value]);
+  values.push(["fixes", caps.fixes], ["driftFit", caps.driftFit]);
+  assert.ok(values.length >= 11, "能力声明条数偏少: " + values.length);
+  for (const [key, value] of values) {
+    assert.ok(allowed.has(value), `${key} 的声明值不是枚举值: ${JSON.stringify(value)}`);
+  }
 });

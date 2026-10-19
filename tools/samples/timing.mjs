@@ -9,7 +9,7 @@
  */
 import { assertClean } from "./whitelist.mjs";
 import { buildSrt, annotateSrtLines } from "./srtbuild.mjs";
-import { runTimingOracle, CLASS_RULE, TIMING_CLASSES } from "./timingoracle.mjs";
+import { runTimingOracle, fitDriftOracle, CLASS_RULE, TIMING_CLASSES } from "./timingoracle.mjs";
 import { plant } from "./util.mjs";
 
 /* ---------- 干净基线 ---------- */
@@ -35,10 +35,62 @@ function withIndex(specs) {
 
 const CLEAN_LINES = buildSrt(withIndex(CLEAN_SPECS)).lines;
 
-/* ---------- 12 类样本 ---------- */
+/* ---------- T11 专用基线：24 条 cue，起点落在**声明帧栅格**上 ----------
+ * G14 决策 (a)：T11 样本扩到 ≥ drift.minSamples（20）。样本按"声明 23.976fps 的字幕
+ * 在 25fps 素材上播放"构造——文件时间码是声明帧栅格的整数帧号，播放时被等比拉伸。
+ * 只有落在声明帧栅格上，`scale` 才可辨识（见 data/README.md §4.5 判据）。 */
 
-/* 漂移样本声明的两端 fps（输入参数，不是观测值） */
-const DRIFT_FPS = { declared: 23.976, playback: 25 };
+const DRIFT_DECLARED_FPS = 23.976;
+const DRIFT_PLAYBACK_FPS = 25;
+const DRIFT_FRAME_MS = 1000 / DRIFT_DECLARED_FPS;
+const DRIFT_STEPS = [7, 8, 6, 9, 7, 8];
+const DRIFT_DURATIONS = [4, 5, 4, 5, 4, 5];
+const DRIFT_TEXTS = [
+  "角色甲：夜航开始了。",
+  "角色乙：灯塔在哪边？",
+  "角色甲：跟着浪走。",
+  "角色乙：风比昨天大。",
+  "角色甲：前面有礁石。",
+  "角色乙：把帆收一半。",
+  "角色甲：明白。",
+  "旁白：这是示例剧的第一集。",
+  "角色甲：潮水正在退。",
+  "角色乙：码头还有灯。",
+  "角色甲：先把缆绳系好。",
+  "角色乙：船身有点晃。",
+  "角色甲：看那边的云。",
+  "角色乙：风向变了。",
+  "角色甲：再等等看。",
+  "旁白：夜里的海面很静。",
+  "角色甲：听见礁声了吗？",
+  "角色乙：从左舷传过来。",
+  "角色甲：慢一点靠过去。",
+  "角色乙：好，我盯着。",
+  "角色甲：把灯调暗些。",
+  "角色乙：这样更清楚。",
+  "角色甲：准备收网。",
+  "旁白：第一集到这里结束。",
+];
+
+function driftSpecs() {
+  const out = [];
+  let frame = 0;
+  for (let i = 0; i < DRIFT_TEXTS.length; i += 1) {
+    out.push({
+      declaredIndex: i + 1,
+      startMs: Math.round(frame * DRIFT_FRAME_MS),
+      endMs: Math.round((frame + DRIFT_DURATIONS[i % 6]) * DRIFT_FRAME_MS),
+      text: [DRIFT_TEXTS[i]],
+    });
+    frame += DRIFT_STEPS[i % 6];
+  }
+  return out;
+}
+
+const DRIFT_BASE_SPECS = driftSpecs();
+const DRIFT_CLEAN_LINES = buildSrt(DRIFT_BASE_SPECS).lines;
+
+/* ---------- 12 类样本 ---------- */
 
 const CASES = [
   {
@@ -137,15 +189,20 @@ const CASES = [
   {
     id: "t11-fps-drift",
     cls: "T11",
-    note: "25fps 素材按 23.976fps 播放：scale≈1.0427，全段线性漂移",
+    note: "24 条 cue 的声明帧栅格（23.976fps）字幕在 25fps 素材上播放：全段等比拉伸 scale≈1.0427",
     drift: true,
-    fps: DRIFT_FPS,
-    mutant: (s) => {
-      const scale = DRIFT_FPS.playback / DRIFT_FPS.declared;
-      for (const cue of s) {
-        cue.startMs = Math.round(cue.startMs * scale);
-        cue.endMs = Math.round(cue.endMs * scale);
-      }
+    fps: { declared: DRIFT_DECLARED_FPS, playback: DRIFT_PLAYBACK_FPS },
+    // 样本来自 T11 专用基线（24 条、落在声明帧栅格），不是 8 条通用基线
+    baseLines: () => DRIFT_CLEAN_LINES,
+    mutantLines: (lines) => {
+      const scale = DRIFT_PLAYBACK_FPS / DRIFT_DECLARED_FPS;
+      const specs = DRIFT_BASE_SPECS.map((s) => ({
+        declaredIndex: s.declaredIndex,
+        startMs: Math.round(s.startMs * scale),
+        endMs: Math.round(s.endMs * scale),
+        text: s.text.slice(),
+      }));
+      return buildSrt(specs).lines;
     },
   },
   {
@@ -241,32 +298,41 @@ export function buildTimingSamples() {
   }
 
   for (const spec of CASES) {
+    // T11 用专用基线（24 条、落在声明帧栅格）；其余样本用通用干净基线（8 条）
+    const baseLines = spec.baseLines ? spec.baseLines() : CLEAN_LINES;
     let mutantLines;
-    if (spec.linePlant) {
-      mutantLines = spec.mutateLines(CLEAN_LINES);
-      plant(spec.id, CLEAN_LINES.join("\n"), mutantLines.join("\n"));
+    if (spec.mutantLines) {
+      mutantLines = spec.mutantLines(baseLines);
+      plant(spec.id, baseLines.join("\n"), mutantLines.join("\n"));
+    } else if (spec.linePlant) {
+      mutantLines = spec.mutateLines(baseLines);
+      plant(spec.id, baseLines.join("\n"), mutantLines.join("\n"));
     } else {
       const mutantSpecs = clone(CLEAN_SPECS);
       spec.mutant(mutantSpecs);
       mutantLines = buildSrt(withIndex(mutantSpecs)).lines;
-      plant(spec.id, CLEAN_LINES.join("\n"), mutantLines.join("\n"));
+      plant(spec.id, baseLines.join("\n"), mutantLines.join("\n"));
     }
 
     const text = mutantLines.join("\n") + "\n";
     for (const line of mutantLines) assertClean(line, spec.id);
 
     const cues = cuesFromLines(mutantLines);
-    const oracle = runTimingOracle(cues, spec.mediaDurationMs ? { mediaDurationMs: spec.mediaDurationMs } : {});
+    const oracleOptions = {};
+    if (spec.mediaDurationMs) oracleOptions.mediaDurationMs = spec.mediaDurationMs;
+    if (spec.drift) oracleOptions.declaredFps = DRIFT_DECLARED_FPS;
+    const oracle = runTimingOracle(cues, oracleOptions);
     const ruleId = CLASS_RULE[spec.cls];
 
-    // T11 尚未实现（M3）：真值里写"应报"，但独立判定式本轮不会产出它。
-    // 其余 11 类必须能被独立复算，否则真值不可信。
+    // 每类样本都必须能被**独立判定式**复算出植入的规则，否则真值不可信。
+    // T11 额外自证：同一基线的干净版本不得产出 fps-drift（误报对照）。
     if (spec.cls === "T11") {
-      const cleanOracle = runTimingOracle(cuesFromLines(CLEAN_LINES), {});
+      const cleanOracle = runTimingOracle(cuesFromLines(baseLines), { declaredFps: DRIFT_DECLARED_FPS });
       if (cleanOracle.findings.some((f) => f.ruleId === "timing.fps-drift")) {
         throw new Error("T11: 干净基线不应产出 fps-drift");
       }
-    } else if (!oracle.findings.some((f) => f.ruleId === ruleId)) {
+    }
+    if (!oracle.findings.some((f) => f.ruleId === ruleId)) {
       throw new Error(`${spec.id}: 植入后独立判定式没有产出 ${ruleId}（真值不可复算）`);
     }
 
@@ -278,16 +344,12 @@ export function buildTimingSamples() {
     }
 
     // 期望 = 独立判定式的**全部**输出（不只本类规则）——真值必须完整，
-    // 否则 M3 多报一条就会被误判成"误报"。`primaryRuleId` 标明本样本的植入类。
+    // 否则多报一条就会被误判成"误报"。`primaryRuleId` 标明本样本的植入类。
     const expectFindings = oracle.findings.map((f) => {
       const item = { ruleId: f.ruleId, line: f.line };
       if (f.field) item.field = f.field;
       return item;
     });
-    if (spec.cls === "T11") {
-      // T11 未实现（M3）：按 plan/03 §二 的表写明期望（line=1, field=fit）
-      expectFindings.unshift({ ruleId: "timing.fps-drift", line: 1, field: "fit" });
-    }
 
     const truth = {
       sample: "timing/" + spec.id + ".srt",
@@ -299,17 +361,27 @@ export function buildTimingSamples() {
     };
     if (spec.mediaDurationMs) truth.mediaDurationMs = spec.mediaDurationMs;
     if (spec.drift) {
+      // 真值只存**输入与期望**（K11）：fps 是声明输入，expectedFit 是按输入可复算的期望值。
+      // 复原出的 scale/offset 是运行时输出，**不写进真值**——改由生成器当场断言（下方），
+      // 数值断言留在 tests/drift_fit.test.mjs。
+      const fit = fitDriftOracle(
+        cuesFromLines(mutantLines).map((c) => c.startMs),
+        DRIFT_DECLARED_FPS
+      );
+      if (!fit.ok) throw new Error("T11: 独立判定式未产出拟合结果（" + fit.reason + "）");
+      const expectedScale = DRIFT_PLAYBACK_FPS / DRIFT_DECLARED_FPS;
+      const recoveryErrorMs = Math.abs(fit.fit.scale - expectedScale) * fit.fit.spanMs;
+      if (recoveryErrorMs >= 40) {
+        throw new Error(`T11: 复原误差 ${recoveryErrorMs}ms >= 1 帧（25fps = 40ms），真值不可信`);
+      }
       truth.fps = spec.fps;
       truth.expectedFit = {
-        scale: Number((DRIFT_FPS.playback / DRIFT_FPS.declared).toFixed(6)),
+        scale: Number(expectedScale.toFixed(6)),
         offsetMs: 0,
         residualMaxMs: 40,
-        note: "M3 验收：复原 scale 误差 < 1 帧；offset 近似 0",
+        note: "M3 验收：复原 scale 误差 < 1 帧（@25fps = 40ms）；offset 近似 0",
       };
-    }
-    if (spec.cls === "T11") {
-      truth.implementationStatus = "pending-M3";
-      truth.skippedDeclaration = { ruleId: "timing.fps-drift", reason: "not_implemented" };
+      truth.implementationStatus = "implemented";
     }
 
     samples.push({ id: spec.id, cls: spec.cls, ruleId, fileName: spec.id + ".srt", text, truth });

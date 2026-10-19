@@ -8,6 +8,7 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     files: [],
     results: [],
     mediaDurationMs: null,
+    declaredFps: null,
   };
 
   function $(id) {
@@ -55,7 +56,10 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     const merged = state.files.concat(files);
     state.files = merged;
     try {
-      const outcome = pipeline.run(merged, { mediaDurationMs: state.mediaDurationMs });
+      const outcome = pipeline.run(merged, {
+        mediaDurationMs: state.mediaDurationMs,
+        declaredFps: state.declaredFps,
+      });
       state.results = outcome.results;
       render();
       setStatus("已体检 " + outcome.results.length + " 个文件", "ok");
@@ -68,6 +72,8 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
     renderFiles();
     renderFindings();
     renderSkipped();
+    renderFixes();
+    renderWhitelist();
   }
 
   function renderFiles() {
@@ -139,7 +145,75 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
         list.appendChild(li);
       }
     }
+    $("skipped-count").textContent = "（" + seen.size + "）";
     $("skipped-block").hidden = seen.size === 0;
+    renderCapabilities();
+  }
+
+  /** 能力声明是数据结构，界面必须逐条摊开——"没写"和"没实现"一样不能被读成"通过"。 */
+  function renderCapabilities() {
+    const list = $("capabilities-list");
+    list.innerHTML = "";
+    const caps = state.results.length ? state.results[0].report.capabilities : {};
+    const rows = [];
+    for (const [key, value] of Object.entries(caps.parsers || {})) rows.push(["解析器 " + key, value]);
+    for (const [key, value] of Object.entries(caps.rules || {})) rows.push(["规则 " + key, value]);
+    for (const [key, value] of Object.entries(caps.exports || {})) rows.push(["导出 " + key, value]);
+    rows.push(["修复", caps.fixes]);
+    rows.push(["漂移拟合", caps.driftFit]);
+    for (const [label, value] of rows) {
+      const li = document.createElement("li");
+      li.textContent = label + " — " + value;
+      if (value !== "implemented") li.className = "cap-missing";
+      list.appendChild(li);
+    }
+  }
+
+  /** 已应用的修复：每条给出动作与前后值，修复不是黑盒。 */
+  function renderFixes() {
+    const list = $("fixes-list");
+    list.innerHTML = "";
+    let count = 0;
+    for (const result of state.results) {
+      for (const item of result.report.fixes) {
+        count += 1;
+        const li = document.createElement("li");
+        li.textContent =
+          result.file.name +
+          " 第 " +
+          (item.line === null ? "—" : item.line) +
+          " 行 · " +
+          item.action +
+          "（" +
+          item.before +
+          " → " +
+          item.after +
+          "）";
+        list.appendChild(li);
+      }
+    }
+    $("fixes-count").textContent = "（" + count + "）";
+    $("fixes-block").hidden = count === 0;
+  }
+
+  /** 白名单命中：被"放过"的内容必须能在界面看见（不得静默）。 */
+  function renderWhitelist() {
+    const list = $("whitelist-list");
+    list.innerHTML = "";
+    const totals = {};
+    for (const result of state.results) {
+      for (const [key, value] of Object.entries(result.report.summary.whitelist || {})) {
+        totals[key] = (totals[key] || 0) + value;
+      }
+    }
+    const keys = Object.keys(totals).sort();
+    for (const key of keys) {
+      const li = document.createElement("li");
+      li.textContent = key + " ×" + totals[key];
+      list.appendChild(li);
+    }
+    $("whitelist-count").textContent = "（" + keys.length + "）";
+    $("whitelist-block").hidden = keys.length === 0;
   }
 
   function download(name, text, mime) {
@@ -170,6 +244,37 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
       }),
     };
     download("subtitle-preflight.report.json", JSON.stringify(merged, null, 2) + "\n", "application/json;charset=utf-8");
+  }
+
+  function exportMarkdown() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const base = result.file.name.replace(/\.[^.]+$/, "");
+      download(base + ".report.md", result.markdown, "text/markdown;charset=utf-8");
+    }
+  }
+
+  function exportCsv() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const base = result.file.name.replace(/\.[^.]+$/, "");
+      download(base + ".report.csv", result.csv, "text/csv;charset=utf-8");
+    }
+  }
+
+  /**
+   * 修复后字幕：直接下载 pipeline 已经算好的文本（界面不重算、不改一个字）。
+   * 文件名带 `.fixed` 后缀，避免覆盖原文件。
+   */
+  function exportFixed() {
+    if (!state.results.length) return;
+    for (const result of state.results) {
+      const name = result.file.name;
+      const dot = name.lastIndexOf(".");
+      const base = dot > 0 ? name.slice(0, dot) : name;
+      const ext = dot > 0 ? name.slice(dot) : "";
+      download(base + ".fixed" + ext, result.fixedText, "text/plain;charset=utf-8");
+    }
   }
 
   function bind() {
@@ -225,8 +330,22 @@ SP.define("ui/app", ["core/pipeline"], function (pipeline) {
       if (state.files.length) analyze([]);
     });
 
+    $("declared-fps").addEventListener("change", function (event) {
+      const raw = event.target.value.trim();
+      if (!raw) {
+        state.declaredFps = null;
+        return;
+      }
+      const fps = Number(raw);
+      state.declaredFps = isFinite(fps) && fps > 0 ? fps : null;
+      if (state.files.length) analyze([]);
+    });
+
     $("export-json").addEventListener("click", exportJson);
     $("export-merged").addEventListener("click", exportMergedJson);
+    $("export-markdown").addEventListener("click", exportMarkdown);
+    $("export-csv").addEventListener("click", exportCsv);
+    $("export-fixed").addEventListener("click", exportFixed);
 
     $("clear").addEventListener("click", function () {
       state.files = [];

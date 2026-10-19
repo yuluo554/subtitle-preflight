@@ -142,7 +142,10 @@ h3 { font-size: .95rem; margin: 1rem 0 .4rem; color: var(--muted); }
 .badge-muted { color: var(--muted); }
 
 .skipped { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: .6rem; }
+.skipped summary { cursor: pointer; color: var(--fg); font-size: .9rem; }
+.skipped h4 { margin: .7rem 0 .2rem; font-size: .84rem; color: var(--muted); font-weight: 600; }
 .skipped ul { margin: .2rem 0 0; padding-left: 1.2rem; color: var(--muted); font-size: .86rem; }
+.cap-missing { color: var(--warn); }
 
 .actions { display: flex; flex-wrap: wrap; gap: .6rem; }
 .note { color: var(--muted); font-size: .82rem; margin: .9rem 0 0; }

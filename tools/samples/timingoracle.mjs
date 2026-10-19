@@ -100,11 +100,153 @@ export function runTimingOracle(cues, opts) {
     skipped.push({ ruleId: "timing.past-media-end", reason: "media_duration_unknown" });
   }
 
-  // 与 src/core/rules/timing.js 一致：T11 未实现必须显式声明（K7），不静默返回空
-  skipped.push({ ruleId: "timing.fps-drift", reason: "not_implemented" });
+  // T11 fps 漂移：需要声明帧率；只用"干净对"作样本（与 src 同口径、独立实现）
+  const driftOutcome = fitDriftOracle(cleanPairStarts(cues, gapMin), o.declaredFps);
+  if (driftOutcome.ok) at("timing.fps-drift", { timeLine: 1 }, "fit");
+  else skipped.push({ ruleId: "timing.fps-drift", reason: driftOutcome.reason, samples: driftOutcome.samples });
 
   findings.sort(compare);
   return { findings, skipped };
+}
+
+/**
+ * 「干净对」起点序列：个体合法且相邻对合法的**最长连续段**（独立实现，与 src 同口径）。
+ * @param {Array} cues
+ * @param {number} gapMin
+ */
+export function cleanPairStarts(cues, gapMin) {
+  const textOf = (c) => (c.textLines || []).join("\n");
+  const valid = cues.map(
+    (c) =>
+      !c.unparsable &&
+      typeof c.startMs === "number" &&
+      typeof c.endMs === "number" &&
+      isFinite(c.startMs) &&
+      isFinite(c.endMs) &&
+      c.startMs >= 0 &&
+      c.endMs > c.startMs
+  );
+  let best = [];
+  let run = [];
+  for (let i = 0; i < cues.length; i += 1) {
+    if (!valid[i]) {
+      run = [];
+      continue;
+    }
+    if (run.length === 0) {
+      run = [i];
+    } else {
+      const prev = cues[run[run.length - 1]];
+      const cue = cues[i];
+      const clean =
+        cue.startMs - prev.endMs >= gapMin &&
+        cue.startMs >= prev.startMs &&
+        !(cue.startMs === prev.startMs && cue.endMs === prev.endMs && textOf(cue) === textOf(prev));
+      if (clean) run.push(i);
+      else run = [i];
+    }
+    if (run.length > best.length) best = run.slice();
+  }
+  return best.map((i) => cues[i].startMs);
+}
+
+/**
+ * T11 fps 漂移拟合（真值侧**独立实现**，不 import src/core）。
+ *
+ * 与 `src/core/rules/drift.js` 构成差分对照：同一口径（`data/README.md` §4.5）写两遍。
+ * 判据 = 拟合后**残余漂移** `|scale − 1| × 时间跨度 > drift.residualMaxMs`；
+ * 残差中位数是**拟合目标**，不是判据（自由 scale 会吸收纯比例漂移）。
+ *
+ * @param {number[]} startsMs 干净对起点（毫秒）
+ * @param {number} declaredFps 用户声明的帧率
+ * @returns {{ok:true, fit:Object}|{ok:false, reason:string, samples:number}}
+ */
+export function fitDriftOracle(startsMs, declaredFps) {
+  const R = RULESET;
+  const MICRO = 1000;
+  const UNIT = 1000000;
+  const n = startsMs.length;
+  if (!(typeof declaredFps === "number" && isFinite(declaredFps) && declaredFps > 0)) {
+    return { ok: false, reason: "media_fps_unknown", samples: n };
+  }
+  if (n < R["drift.minSamples"]) return { ok: false, reason: "samples_below_min", samples: n };
+
+  const T = startsMs.map((ms) => Math.round(ms * MICRO));
+  const frameMicro = UNIT / declaredFps;
+
+  const offLo = R["drift.offsetRange"][0] * MICRO;
+  const offHi = R["drift.offsetRange"][1] * MICRO;
+  const offCoarse = R["drift.offsetStepCoarse"] * MICRO;
+  const offFine = R["drift.offsetStepFine"] * MICRO;
+  const sLo = Math.round(R["drift.scaleRange"][0] * UNIT);
+  const sHi = Math.round(R["drift.scaleRange"][1] * UNIT);
+  const sCoarse = Math.round(R["drift.scaleStepCoarse"] * UNIT);
+  const sFine = Math.round(R["drift.scaleStepFine"] * UNIT);
+
+  const medianInt = (values) => {
+    const sorted = values.slice().sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    return sorted.length % 2 ? sorted[mid] : Math.floor((sorted[mid - 1] + sorted[mid]) / 2);
+  };
+
+  // 声明帧栅格时间轴（µms 整数）：f₁ = 0；fᵢ = fᵢ₋₁ + round(ΔTᵢ ÷ (scale × 帧长))；refᵢ = fᵢ × 帧长
+  const buildRef = (scaleU) => {
+    const step = (scaleU / UNIT) * frameMicro;
+    const frames = [0];
+    for (let i = 1; i < n; i += 1) frames.push(frames[i - 1] + Math.round((T[i] - T[i - 1]) / step));
+    return frames.map((f) => Math.round(f * frameMicro));
+  };
+  const predict = (scaleU, ref) => ref.map((r) => Math.round((scaleU * r) / UNIT));
+
+  const residualAt = (offU, pred) => medianInt(T.map((t, i) => Math.abs(t - offU - pred[i])));
+
+  const prefer = (cand, best) => {
+    if (!best) return true;
+    if (cand.residualU !== best.residualU) return cand.residualU < best.residualU;
+    if (cand.offsetU !== best.offsetU) return cand.offsetU < best.offsetU;
+    return cand.scaleU < best.scaleU;
+  };
+
+  let best = null;
+  for (let scaleU = sLo; scaleU <= sHi; scaleU += sCoarse) {
+    const pred = predict(scaleU, buildRef(scaleU));
+    let offU = Math.round(medianInt(T.map((t, i) => t - pred[i])) / offCoarse) * offCoarse;
+    if (offU < offLo) offU = offLo;
+    if (offU > offHi) offU = offHi;
+    const cand = { scaleU, offsetU: offU, residualU: residualAt(offU, pred) };
+    if (prefer(cand, best)) best = cand;
+  }
+  let fine = Object.assign({}, best);
+  const sFrom = Math.max(sLo, best.scaleU - sCoarse);
+  const sTo = Math.min(sHi, best.scaleU + sCoarse);
+  for (let scaleU = sFrom; scaleU <= sTo; scaleU += sFine) {
+    const pred = predict(scaleU, buildRef(scaleU));
+    const oFrom = Math.max(offLo, best.offsetU - offCoarse);
+    const oTo = Math.min(offHi, best.offsetU + offCoarse);
+    for (let offU = oFrom; offU <= oTo; offU += offFine) {
+      const cand = { scaleU, offsetU: offU, residualU: residualAt(offU, pred) };
+      if (prefer(cand, fine)) fine = cand;
+    }
+  }
+
+  const spanU = T[T.length - 1] - T[0];
+  const driftU = Math.round((Math.abs(fine.scaleU - UNIT) * spanU) / UNIT);
+  const onGrid = fine.residualU <= R["drift.gridToleranceMs"] * MICRO;
+  const fires = onGrid && driftU > R["drift.residualMaxMs"] * MICRO;
+  if (!fires) {
+    return { ok: false, reason: onGrid ? "drift_within_tolerance" : "not_frame_grid", samples: n };
+  }
+  return {
+    ok: true,
+    fit: {
+      scale: fine.scaleU / UNIT,
+      offsetMs: fine.offsetU / MICRO,
+      residualMs: fine.residualU / MICRO,
+      spanMs: spanU / MICRO,
+      driftMs: driftU / MICRO,
+      samples: n,
+    },
+  };
 }
 
 export const TIMING_CLASSES = [

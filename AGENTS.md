@@ -24,6 +24,7 @@ node tools/check-ruleset.mjs          # 口径门；data/README.md §4 与 rules
 | 里程碑状态副本 | `plan/00` 里程碑表 + `plan/05` 状态表 + `README` 状态表 | **逐处一致**，枚举式断言 |
 | 发布留档 | `plan/RELEASE-M<last>.md`（两栏）或 `plan/WRAPUP-M<n>.md` | 标题齐、覆盖对账表在 |
 | 测试清单 | `package.json` 的 `test` 脚本 | 逐文件列出，且覆盖 `tests/**/*.test.mjs` 全集 |
+| 技术报告 | `docs/技术报告.md` | M5 起落盘（架构 / 四类规则 / 差分对照 / 实测记录 / 非目标） |
 | 构建产物 | `dist/subtitle-preflight.html` | 存在；`node tools/build.mjs --check` 逐字节一致 |
 
 ## 既定口径（动了会打挂门与测试）
@@ -35,6 +36,20 @@ node tools/check-ruleset.mjs          # 口径门；data/README.md §4 与 rules
 - **K5**：报告默认不含时间戳、不含随机 ID、不含本机绝对路径；findings 按 `(line, ruleId)` 排序。
 - **K6**：单文件产物零外链、零网络请求；`<a href>` 之外的任何外部资源引用都判红。
 - **K7**：未实现的规则必须在报告 `skipped[]` 与 `capabilities` 中显式声明，不得静默返回空。
+  M5 后已无 `not_implemented`；`skipped[]` 里的 `fix` 记录语义是**执行结果**（`applied` / `no_fixable_finding`），不是"未实现"。
+- **K15**：`timing.*` 属时间类 finding（`line` = `timeLine`）；`readability.*` / `hygiene.*` 属文本类（`line` = `sourceLine`）。
+- **K16**：T11 fps 漂移拟合的判据是**残余漂移** `|scale−1| × 跨度 > drift.residualMaxMs`（残差中位数只是拟合目标，自由 scale 会吸收纯比例漂移），
+  并以 `drift.gridToleranceMs` 作"确实落在声明帧栅格上"的护栏；未声明帧率 → `skipped(media_fps_unknown)`。
+- **K17**：finding 严格保持 `plan/02 §3.2` 的 **7 键**（`ruleId`/`severity`/`line`/`field`/`expected`/`actual`/`message`）；
+  可读性的语言档位写进 `expected`/`message` 文案，**不新增键**（避免数据契约漂移）。
+- **K18**：时序与可读性真值的端到端对账**按域切分**——时序测试只比 `timing.*`，可读性测试只比 `readability.*`；
+  同一 cue 上两域并存（如 T02 的 0ms cue 也触发 `readability.duration-short`），互不污染。
+- **K19**：卫生 finding 的 `line` 取 `sourceLine`，且**同 cue 同 ruleId 只报一条**（逐行报会在同一 `line` 上堆多条同 ruleId，既重复又难读）；真值按 cue 级标注。
+- **K20**：修复落在**原文行**上，不重新序列化格式——修复后文件与原文逐行同构（SRT/VTT/ASS 各自保持），
+  时间码重写保留原行分隔符与小数位数；找不到两个时间码 token 时宁可不修。
+  修复顺序有语义：**去行尾空白必须先于补闭合标签**；缩短 `end` 的目标是 `后一条 start − timing.gapMin` 且缩短后时长 ≥ `duration.min`。
+- **K21**：`summary` 键序固定为 `total → bySeverity → byRule → whitelist`；白名单命中**不是违规**，不进 `findings[]`。
+- **K22**：`tools/bench.mjs` 只测量、**不判达标**；`perf.targetWallMs` 是设计口径，不是硬承诺（不同机器不可比）。
 
 ## 环境事实与禁忌
 
@@ -48,9 +63,13 @@ node tools/check-ruleset.mjs          # 口径门；data/README.md §4 与 rules
 ```bash
 node tools/check-sprint-layout.mjs     # 布局门
 node tools/check-ruleset.mjs           # 口径门
+node tools/check-truth.mjs             # 真值门（样本 ↔ 真值 / 覆盖度 / 内容白名单）
+node tools/gen-samples.mjs --check     # 样本与真值位级一致 + 无孤儿
 node tools/selftest-layout.mjs         # 布局门 7 组变异自检
 npm test                               # 全量测试（逐文件列出）
+node tools/bench.mjs                   # 10MB / 5000 cue 性能基准（只测量，不判达标）
 node tools/build.mjs                   # 构建单文件产物
 node tools/build.mjs --check           # 产物与源码是否同基线
 node tools/e2e-browser.mjs             # 浏览器 e2e（需本机 Chrome/Edge；缺则 exit 3）
+npm run verify                         # 三道门 + 生成器位级检查 + 测试 + 构建检查
 ```
