@@ -59,6 +59,8 @@
 | 干净 clone 复核 | 从 GitHub 全新 `git clone` 到中立目录：布局/口径/真值/变异自检/生成器 **全绿**；`npm test` **246 项全绿**；`build --check` 绿；浏览器 e2e **全绿** | 逐条命令实测 |
 | 测试数勘误 | tag 树实测 **246 项**（本地与干净 clone 一致）；早前 `plan/RELEASE-M6` 骨架与 `docs/技术报告.md` 记 245 为误数 | 见「事实与留档的时序」注 |
 | 脱敏（tag 可达对象） | tracked / history / messages 三模式 **HARD 0**（tag 对象纳入 history 扫描） | `node tools/check-desensitize.mjs [--history] [--messages]` |
+| 扫描面计数是环境相关值（勘误，2026-10-20 二次迭代） | §一「扫描面 171 项」「736 项 blob」为 tag 树留档时点实测；该计数 = `git ls-files` 文本文件数 / 历史_blob 数，随 clone 状态漂移：tag clone 实测 tracked **164** / main 工作树实测 **172**，history tag clone 实测 **1838**。结论项 **HARD 0 / REVIEW 0 不变**。口径以本条为准，§一数字不再回改（§一为 tag 前事实栏） | `node tools/check-desensitize.mjs` 于 `git clone --no-local --branch v0.1.0` 与 main 工作树各跑一次 |
+| 解包树 npm test 曾 245/1（已修，2026-10-20 二次迭代） | `git archive` 解包树（无 `.git`）里 tracked 扫描的 `git ls-files` 抛 fatal，`tests/desensitize_contract.test.mjs` 的「缺扫描面计数 → fail」强断言把环境缺失误当断言失败。修法：tracked 模式 `git ls-files` 失败 → 打印 `SKIP 环境缺失…` 并 **exit 3**（对齐脚本头既有契约）；该测试在无 `.git` 时显式 skip，有 `.git` 强断言保留。修后解包树 `npm test` = **246 pass / 0 fail / 1 skipped**，tracked 模式 exit 3 | `git archive HEAD` 解包树实测；提交 `46c18a19369c8a20d7dd55eb207dccc9f792fe02` |
 
 > **事实与留档的时序**：`docs/技术报告.md` 在 tag 树内、其「246 项」勘误**落在 tag 之后**，
 > 但 tag 后只允许 `plan/`、`README.md` 改动 → 该文件在 tag 树内仍写 **245**。此处如实登记这处落后，
