@@ -19,7 +19,7 @@
     "samples:check": "node tools/gen-samples.mjs --check",
     "bench": "node tools/bench.mjs",
     "e2e": "node tools/e2e-browser.mjs",
-    "test": "node --test tests/architecture.test.mjs tests/artifact_e2e.test.mjs tests/bench_contract.test.mjs tests/build.test.mjs tests/decode.test.mjs tests/desensitize_contract.test.mjs tests/drift_fit.test.mjs tests/fix_monotonic.test.mjs tests/gates.test.mjs tests/hygiene_golden.test.mjs tests/parse_ass.test.mjs tests/parse_srt.test.mjs tests/parse_vtt.test.mjs tests/readability_chars_duration.test.mjs tests/readability_cps.test.mjs tests/readability_line.test.mjs tests/report_determinism.test.mjs tests/report_formats.test.mjs tests/samples_generator.test.mjs tests/timing_rules.test.mjs tests/truth.test.mjs",
+    "test": "node --test tests/architecture.test.mjs tests/artifact_e2e.test.mjs tests/bench_contract.test.mjs tests/build.test.mjs tests/decode.test.mjs tests/desensitize_contract.test.mjs tests/drift_fit.test.mjs tests/fix_monotonic.test.mjs tests/gates.test.mjs tests/hygiene_golden.test.mjs tests/parse_ass.test.mjs tests/parse_srt.test.mjs tests/parse_vtt.test.mjs tests/readability_chars_duration.test.mjs tests/readability_cps.test.mjs tests/readability_line.test.mjs tests/report_determinism.test.mjs tests/report_formats.test.mjs tests/samples_generator.test.mjs tests/count_guard.test.mjs tests/timing_rules.test.mjs tests/truth.test.mjs",
     "desensitize": "node tools/check-desensitize.mjs",
     "desensitize:history": "node tools/check-desensitize.mjs --history",
     "desensitize:messages": "node tools/check-desensitize.mjs --messages",
