@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../tools/bundle.mjs";
 
@@ -40,7 +41,12 @@ test("脱敏扫描器：非法用法 exit 2", () => {
   assert.ok(out.includes("用法"));
 });
 
-test("脱敏扫描器：tracked 模式非空跑（自报扫描面计数与结论行）", () => {
+test("脱敏扫描器：tracked 模式非空跑（自报扫描面计数与结论行）", (t) => {
+  // 无 .git 的环境（如 git archive 解包树）里 tracked 模式显式 exit 3（环境缺失），
+  // 本测试在此类环境下显式 SKIP——这不是跳过产品断言：有 .git 时强断言必须成立。
+  if (!existsSync(join(ROOT, ".git"))) {
+    return t.skip("SKIP 环境缺失：无 .git 工作树，tracked 模式断言在此环境不适用（脚本自身应 exit 3）");
+  }
   // 用容忍非零退出的 runner：常驻测试只锁**脚本形态**，不锁"当前 0 命中"
   // （当前命中数会随仓库内容漂移；那由发布期人工跑，不进 CI 门）。
   const { out } = runStatus([]);

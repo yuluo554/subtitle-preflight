@@ -16,7 +16,7 @@
  *    其余（系统目录、占位路径）= REVIEW（打印供人工看，不阻断）。
  *  - **公开元数据豁免**：GitHub noreply 邮箱是发布固有公开元数据，不计命中。
  *
- * 退出码：0 无 HARD 命中 / 1 有 HARD 命中 / 2 用法错误 / 3 环境缺失（无 git 时 --history/--messages）。
+ * 退出码：0 无 HARD 命中 / 1 有 HARD 命中 / 2 用法错误 / 3 环境缺失（无 git 时 tracked/--history/--messages）。
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -158,7 +158,14 @@ function scanText(label, text, criteria, report) {
 
 function runTracked(criteria, report) {
   let scanned = 0;
-  for (const rel of listTracked()) {
+  let rels;
+  try {
+    rels = listTracked();
+  } catch (error) {
+    process.stderr.write("SKIP 环境缺失：tracked 扫描需要 git 工作树（" + error.message + "）\n");
+    process.exit(3);
+  }
+  for (const rel of rels) {
     const full = join(ROOT, rel);
     if (!existsSync(full) || !statSync(full).isFile()) continue;
     const buf = readFileSync(full);
