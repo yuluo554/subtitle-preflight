@@ -194,7 +194,9 @@ node tools/bench.mjs --runs 5
 
 ## 已知限制
 
-- **CI 四矩阵全绿**：ubuntu / windows × node 20 / 24 均通过，浏览器 e2e 在 runner 上真实跑通
+- **CI 矩阵不含 Node 20**：Node 20 已于 2026-04-30 EOL，矩阵收为 node 22 / 24
+  （2026-10-20 二次迭代；v0.1.0 时点为 node 20/24，历史 run 均绿，见 `plan/RELEASE-M6.md`）。
+- **CI 四矩阵全绿**：ubuntu / windows × node 22 / 24 均通过，浏览器 e2e 在 runner 上真实跑通
   （非"环境缺失"）；v0.1.0 的 tag 与 main 各触发一条 run，均绿。
 - **修复白名单是有边界的**：文本层面的缺陷（占位符、ASS 覆写块残留、全大写、SDH 标记、
   交叉嵌套标签、标点宽度、行尾句号、CJK 间距）**不可修**——修它们必然改文本，

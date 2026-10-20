@@ -44,7 +44,7 @@ M0（装订）、M1（数据先行）、M2（解析）、M3（时序）、M4（�
    （逐条：实现 / 不适用 + 理由 / 待首推）。**tag 之后只允许文档面提交**
    （`git diff --name-only v0.1.0..HEAD` 只含 `plan/`、`README.md`）。
 7. **CI 首推**：push 数 = run 数对账（按事件计数，tag run 也须绿）；四矩阵
-   （ubuntu/windows × node 20/24）。浏览器 e2e 在 runner 上若缺 Chrome/Edge 会 exit 3
+   （ubuntu/windows × node 22/24；v0.1.0 首推时为 node 20/24，Node 20 已 EOL 收掉）。浏览器 e2e 在 runner 上若缺 Chrome/Edge 会 exit 3
    → CI 里记"环境缺失"（**不是通过**）。
 8. **脱敏四步** + 提交身份 / tagger 邮箱检查。
 9. **收尾**：回写三处状态副本（`plan/00` / `plan/05` / `README`）；写 `plan/HANDOFF-M7.md`
@@ -103,7 +103,7 @@ M0（装订）、M1（数据先行）、M2（解析）、M3（时序）、M4（�
 - [ ] 正文写 sha256（**不写进包内文档**）；`isDraft=false`；附件 `state=uploaded`
 - [ ] `plan/RELEASE-M6.md` 两栏 + 阶段 7 覆盖对账表（逐条：实现 / 不适用 + 理由 / 待首推）
 - [ ] tag 后 `git diff --name-only v0.1.0..HEAD` 只含 `plan/`、`README.md`
-- [ ] CI 首推：push 数 = run 数对账；四矩阵（ubuntu/windows × node 20/24）绿
+- [ ] CI 首推：push 数 = run 数对账；四矩阵（ubuntu/windows × node 22/24）绿
 - [ ] 浏览器 e2e 在 runner 上缺浏览器时记"环境缺失"（exit 3），**不记通过**
 - [ ] 脱敏四步 + 提交身份 / tagger 邮箱检查
 - [ ] `node tools/check-sprint-layout.mjs` 绿；`node tools/check-ruleset.mjs` 绿；`node tools/check-truth.mjs` 绿；`node tools/selftest-layout.mjs` 绿
