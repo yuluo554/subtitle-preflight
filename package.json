@@ -1,6 +1,6 @@
 {
   "name": "subtitle-preflight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "字幕投放前体检：单文件 HTML，浏览器内解析 SRT/VTT/ASS，按四类确定性规则体检并导出带行号定位的报告。",
   "license": "MIT",

@@ -1,6 +1,6 @@
 # 字幕投放前体检 · subtitle-preflight
 
-**v0.1.0**
+**v0.1.1**
 
 把 `.srt` / `.vtt` / `.ass` 拖进一个 HTML 文件，浏览器内解析，按「时序 / 阅读速度 / 行长 / 排版卫生」四类确定性规则体检，输出**带源文件行号定位**的 JSON / Markdown / CSV 报告 + 只做**可逆修复**的字幕文件。
 
@@ -12,6 +12,8 @@
 > 10MB / 5000 cue 性能已**实测回填**（本机中位 1.24s，见下方「性能」）。
 > **已发布 v0.1.0**：tag + GitHub Release（附产物 + sha256）+ CI 四矩阵全绿（详见
 > [Releases](https://github.com/yuluo554/subtitle-preflight/releases/tag/v0.1.0)）。
+> **v0.1.1**（2026-10-20）：修复无 .git 环境下脱敏扫描误抛错（显式 exit 3）+ 文档数字收口
+> + CI actions v7 / Node 矩阵收为 22/24（Node 20 EOL）。判题引擎与交付面零改动，详见 CHANGELOG。
 
 ## 里程碑状态
 
