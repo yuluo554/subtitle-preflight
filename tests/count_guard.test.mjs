@@ -44,7 +44,8 @@ function runNpmTest() {
     execFileSync(process.execPath, ["-e", script], { stdio: "ignore" });
     const out = readFileSync(outPath, "utf8");
     assert.ok(!out.includes("COUNT_GUARD_NPM_FAIL"), "npm test 自身失败:\n" + out.slice(-600));
-    const m = out.match(/^ℹ tests (\d+)\r?$/m);
+    // spec reporter（TTY）打「ℹ tests N」；非 TTY（CI 管道）落回 TAP，打「# tests N」
+    const m = out.match(/^(?:ℹ|#) tests (\d+)\r?$/m);
     assert.ok(m, "npm test 输出缺「ℹ tests N」汇总行:\n" + out.slice(-600));
     return Number(m[1]);
   } finally {
